@@ -1,16 +1,41 @@
----
-layout: landing
----
+# Introduction
 
-import { HomePage } from 'vocs/components'
+## What Is GUSD
 
-<HomePage.Root>
-  <HomePage.Logo />
-  <HomePage.Tagline>My Awesome Docs</HomePage.Tagline>
-  <HomePage.InstallPackage name="vocs" type="init" />
-  <HomePage.Description>This is a description of my documentation website.</HomePage.Description>
-  <HomePage.Buttons>
-    <HomePage.Button href="/getting-started" variant="accent">Get started</HomePage.Button>
-    <HomePage.Button href="https://github.com/wevm/vocs">GitHub</HomePage.Button>
-  </HomePage.Buttons>
-</HomePage.Root>
+GUSD is a synthetic US dollar backed by a diversified basket of underlying stablecoins. It serves as the primary user-facing token within the Generic Protocol ecosystem.
+
+GUSD generates yield from underlying collateral strategies deployed across various DeFi protocols. This yield is distributed to chains and dapps based on their GUSD holdings, which they then use as incentives for their users. This model provides a sustainable revenue stream for ecosystem participants.
+
+GUSD is a whitelabeled version of the protocol's core share token, **GenericUnit**, which represents a claim against the protocol's collateral basket.
+
+## How To Get It
+
+To mint GUSD, users need to deposit supported stablecoins (USDC, USDT) into a **GenericVault** on Ethereum mainnet. Upon deposit, users receive GenericUnit, which is then wrapped into GUSD at a 1:1 ratio.
+
+This process is facilitated by the **Depositor** contract in the Periphery module, which handles asset deposits, share minting, and GUSD wrapping seamlessly.
+
+:::info
+Though wrapping GenericUnit into GUSD is always 1:1, minting new GUSD is not always 1:1 to the deposited asset. Find more details about the internal accounting system in the [Vault Accounting](/protocol/controller/accounting) documentation.
+:::
+
+GenericVaults are standard [ERC4626](https://eips.ethereum.org/EIPS/eip-4626) vaults with one exception: they are not ERC20 tokens themselves; instead, they implement [ERC7575 Multi-Asset Vaults](https://eips.ethereum.org/EIPS/eip-7575) standard and use GenericUnit as a shared share token.
+
+The collateral assets deposited into the vaults are deployed into yield-generating lending strategies such as Morpho, Aave, and Sky.
+
+## How To Redeem It
+
+To redeem GUSD for the underlying collateral, users first unwrap their GUSD back into GenericUnit at a 1:1 ratio. They can then redeem GenericUnit from the vault, receiving their share of the underlying stablecoins.
+
+:::info
+Similar to minting, redeeming GenericUnit does not always yield a 1:1 return of the underlying asset due to the internal accounting system. More details can be found in the [Vault Accounting](/protocol/controller/accounting) documentation.
+:::
+
+The Depositor contract also facilitates the redemption process by handling the unwrapping and redemption in a single transaction.
+
+## Multi-Chain Support
+
+GUSD is natively multichain asset. Users can seamlessly bridge GUSD across supported chains via Generic **BridgeCoordinator**.
+
+When bridging to other chains, the GUSD representation is minted on the destination chain, while the L1 GUSD is locked in the bridge contract.
+
+The underlying collateral always remains on Ethereum L1.
