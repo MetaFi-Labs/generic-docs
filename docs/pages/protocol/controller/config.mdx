@@ -1,0 +1,62 @@
+# Configuration
+
+The Config Manager role is responsible for updating critical protocol parameters that affect yield distribution, rewards handling, and rebalancing operations.
+
+## Configurable Parameters
+
+### Safety Buffer Size
+
+The Config Manager sets the portion of yield that is retained as a safety buffer rather than distributed.
+
+**Purpose:**
+- Protects against market volatility
+- Absorbs strategy underperformance
+- Maintains protocol over-collateralization
+
+**Example:**
+```
+Safety Buffer: 1,000%
+Weekly Yield: $100,000
+Buffer Retained: $1,000
+Distributed: $99,000
+```
+
+### Reward Assets
+
+The Config Manager maintains a whitelist of acceptable reward tokens that the Rewards Manager can claim or sell.
+
+**Purpose:**
+- Prevents malicious token operations
+- Ensures only legitimate rewards are processed
+- Limits operational risk
+
+**Example approved assets:**
+- MORPHO (Morpho protocol)
+- COMP (Compound)
+- CRV (Curve)
+
+### Reward Collector Address
+
+The Config Manager sets the destination address where claimed reward tokens are sent.
+
+**Purpose:**
+- Centralizes reward collection
+- Enables efficient distribution to chains/dapps
+
+### Rebalancing Collateral Value Slippage
+
+The Config Manager sets the maximum allowable collateral value loss during rebalancing operations.
+
+**Purpose:**
+- Protects against excessive value loss during swaps
+- Ensures rebalancing doesn't harm protocol health
+- Maintains user fund safety
+
+**Example:**
+```
+Total collateral value: $100,000,000
+Max slippage: 0.01% (1 basis point)
+Maximum acceptable loss: $10,000
+```
+
+If a rebalancing operation would cause collateral value to drop by more than the configured slippage, the transaction reverts.

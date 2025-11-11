@@ -1,0 +1,52 @@
+# Yield Distribution
+
+Rather than automatically increasing the price-per-share of unit tokens, yield is distributed through new token issuance.
+
+## Yield Calculation
+
+Yield is calculated as the difference between the total collateral value and the unit token value:
+
+```
+Yield = Total Collateral Value - Total Unit Token Value
+```
+
+**How Collateral Grows:**
+Collateral is deposited into yield-generating strategies (such as Morpho, Aave, or Sky). As these strategies earn returns, the total collateral value increases over time, creating the yield that can be distributed.
+
+**Example:**
+- Total collateral value: $105 million (grown from strategies)
+- Total unit tokens outstanding: 100 million (at $1.00 each = $100 million)
+- Available yield: $5 million
+
+From this $5 million yield, a portion is allocated to the safety buffer, and the remainder is distributed as new units.
+
+## Distribution Mechanism
+
+**Frequency:** Every 7 days
+
+**Process:**
+1. Yield is calculated as the difference between collateral value and unit token value
+2. Safety buffer portion is deducted (size set by Config Manager role)
+3. Remaining yield is converted to new GenericUnit tokens
+4. Proportional allocation to chains and dapps is calculated off-chain based on their TVL contribution
+5. Yield Manager role mints and distributes the new units to each chain/dapp
+6. Each chain/dapp uses their allocated units to incentivize their users
+
+**Example:**
+If the protocol generates $100,000 worth of yield in a week:
+- Safety buffer (e.g., 5%): $5,000 not distributed
+- Distributable yield: $95,000 = 95,000 new units
+- Chain A (60% of TVL) receives 57,000 units
+- Chain B (40% of TVL) receives 38,000 units
+
+## Safety Buffer
+
+A portion of accrued yield is retained as a safety buffer rather than being distributed. This buffer serves as a protective cushion against:
+
+**Market Volatility:**
+If collateral assets temporarily lose value, the buffer helps maintain the protocol's over-collateralization ratio without immediately impacting unit holders.
+
+**Strategy Underperformance:**
+When a vault's underlying strategy experiences losses or reduced yields, the buffer can absorb these impacts, smoothing out returns over time.
+
+The safety buffer is not a separate vault holding unit tokens. It is rather an undistributed yield within the protocol's collateral pool. The size of the buffer is set by the Config Manager role and adjusts based on market conditions and risk assessment.

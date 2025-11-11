@@ -1,0 +1,40 @@
+# Emergency Procedures
+
+The Emergency Manager role provides critical safeguards to protect user funds during security incidents or market crises. This role is intended as a last resort mechanism.
+
+## Emergency Powers
+
+### Pause and Unpause Operations
+
+The Emergency Manager can halt and resume all protocol operations:
+
+**Pausable Operations:**
+- Deposits (minting new units)
+- Withdrawals (redeeming units for collateral)
+
+**Process:**
+1. Emergency Manager calls pause function
+2. All deposits and withdrawals are blocked
+3. Investigation and resolution occurs
+4. Emergency Manager unpauses when safe
+
+Pausing is a last resort measure used only when continuing normal operations would put user funds at significant risk.
+
+### Emergency Rebalancing Authorization
+
+The Emergency Manager can authorize rebalancing operations even when the unit redemption price falls below $1.00.
+
+**Normal Condition:**
+Under standard operations, if the redemption price drops below $1.00, rebalancing that would further decrease collateral value is blocked to protect unit holders.
+
+**Emergency Override:**
+In critical situations where rebalancing is necessary despite the redemption price being below peg, the Emergency Manager can grant permission to the Rebalancing Manager to proceed.
+
+**Example Scenario:**
+```
+Redemption price: $0.98
+Collateral asset failing, needs immediate exit
+Emergency Manager authorizes rebalancing
+Funds moved despite price impact
+Prevents total loss, preserves most value
+```

@@ -1,0 +1,359 @@
+# Swapper
+
+DEX integration utilities for executing asset swaps in the Generic protocol, supporting Uniswap V3 and 1inch aggregator.
+
+## Overview
+
+The Swapper provides:
+- **Uniswap V3 integration** - Direct pool swaps with optimal routing
+- **1inch aggregator** - Best price across multiple DEXs
+- **Slippage protection** - Minimum output enforcement
+- **Multi-hop routing** - Complex swap paths
+
+## Use Cases
+
+- **Rebalancing** - Convert assets between vaults
+- **Reward selling** - Exchange strategy rewards for collateral
+- **User conversions** - Swap before depositing
+
+## Architecture
+
+```solidity
+interface ISwapper {
+    function swap(
+        address tokenIn,
+        uint256 amountIn,
+        address tokenOut,
+        uint256 minAmountOut,
+        address recipient,
+        bytes calldata data
+    ) external returns (uint256 amountOut);
+}
+```
+
+## Implementations
+
+### Uniswap V3
+
+Native integration with Uniswap V3 pools:
+
+[Learn more →](/protocol/periphery/swapper/uniswap-v3)
+
+```solidity
+contract UniswapV3Swapper is ISwapper {
+    ISwapRouter public immutable swapRouter;
+
+    function swap(...) external returns (uint256 amountOut) {
+        // Execute swap through Uniswap V3
+        ISwapRouter.ExactInputParams memory params = ...;
+        amountOut = swapRouter.exactInput(params);
+    }
+}
+```
+
+### 1inch
+
+Aggregator integration for best prices:
+
+[Learn more →](/protocol/periphery/swapper/1inch)
+
+```solidity
+contract OneInchSwapper is ISwapper {
+    IAggregationRouter public immutable router;
+
+    function swap(...) external returns (uint256 amountOut) {
+        // Execute through 1inch aggregator
+        (amountOut, ) = router.swap(...);
+    }
+}
+```
+
+## Basic Usage
+
+### Simple Swap
+
+```solidity
+// Swap 1000 USDC → USDT
+uint256 amountOut = swapper.swap(
+    USDC,           // tokenIn
+    1000e6,         // amountIn
+    USDT,           // tokenOut
+    995e6,          // minAmountOut (0.5% slippage)
+    msg.sender,     // recipient
+    swapData        // Uniswap path or 1inch data
+);
+```
+
+### With Approval
+
+```solidity
+// Approve swapper
+IERC20(USDC).approve(address(swapper), 1000e6);
+
+// Execute swap
+swapper.swap(USDC, 1000e6, USDT, minOut, recipient, data);
+```
+
+## Slippage Protection
+
+### Calculate Minimum Output
+
+```solidity
+function calculateMinAmountOut(
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 slippageBps  // e.g., 50 = 0.5%
+) public view returns (uint256) {
+    // Get expected output from oracle/DEX
+    uint256 expectedOut = getExpectedOutput(tokenIn, tokenOut, amountIn);
+
+    // Apply slippage
+    return expectedOut * (10000 - slippageBps) / 10000;
+}
+```
+
+**Example:**
+```solidity
+// Expect 1000 USDT, allow 0.5% slippage
+uint256 minOut = calculateMinAmountOut(USDC, USDT, 1000e6, 50);
+// minOut = 995e6 (995 USDT minimum)
+```
+
+### Dynamic Slippage
+
+Adjust based on trade size:
+
+```solidity
+function getDynamicSlippage(uint256 amountIn, uint256 liquidity)
+    public pure returns (uint256) {
+    // Larger trades = more slippage allowed
+    if (amountIn > liquidity / 100) {
+        return 200;  // 2% for >1% of pool
+    } else if (amountIn > liquidity / 1000) {
+        return 100;  // 1% for >0.1% of pool
+    } else {
+        return 50;   // 0.5% for small trades
+    }
+}
+```
+
+## Multi-hop Swaps
+
+### Through Intermediary
+
+```solidity
+// USDS → USDC → USDT
+bytes memory path = abi.encodePacked(
+    USDS,
+    uint24(500),   // 0.05% fee tier
+    USDC,
+    uint24(100),   // 0.01% fee tier
+    USDT
+);
+
+swapper.swap(USDS, amount, USDT, minOut, recipient, path);
+```
+
+### Optimal Routing
+
+```solidity
+function getOptimalPath(
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn
+) public view returns (bytes memory) {
+    // Try direct path
+    uint256 directOutput = simulateSwap(tokenIn, tokenOut, amountIn);
+
+    // Try through USDC
+    uint256 viaUSDC = simulateSwap(tokenIn, USDC, amountIn);
+    viaUSDC = simulateSwap(USDC, tokenOut, viaUSDC);
+
+    // Return better path
+    if (viaUSDC > directOutput) {
+        return encodePath(tokenIn, USDC, tokenOut);
+    } else {
+        return encodePath(tokenIn, tokenOut);
+    }
+}
+```
+
+## Integration in Controller
+
+### Rebalancing
+
+```solidity
+function rebalance(
+    address fromVault,
+    address toVault,
+    uint256 amount,
+    uint256 minAmountOut,
+    bytes calldata swapData
+) external onlyRole(REBALANCER_ROLE) {
+    address fromAsset = IControlledVault(fromVault).asset();
+    address toAsset = IControlledVault(toVault).asset();
+
+    // Withdraw from source
+    IControlledVault(fromVault).withdraw(amount, address(this));
+
+    // Swap
+    IERC20(fromAsset).approve(swapper, amount);
+    uint256 amountOut = ISwapper(swapper).swap(
+        fromAsset,
+        amount,
+        toAsset,
+        minAmountOut,
+        address(this),
+        swapData
+    );
+
+    // Deposit to target
+    IERC20(toAsset).approve(address(toVault), amountOut);
+    IControlledVault(toVault).deposit(amountOut, address(this));
+}
+```
+
+### Selling Rewards
+
+```solidity
+function sellRewardToken(
+    address vault,
+    address token,
+    uint256 amount,
+    uint256 minAmountOut,
+    bytes calldata swapData
+) external onlyRole(REWARDS_MANAGER_ROLE) {
+    address vaultAsset = IControlledVault(vault).asset();
+
+    // Transfer reward token from vault
+    IERC20(token).transferFrom(vault, address(this), amount);
+
+    // Approve swapper
+    IERC20(token).approve(swapper, amount);
+
+    // Swap reward → vault asset
+    uint256 amountOut = ISwapper(swapper).swap(
+        token,
+        amount,
+        vaultAsset,
+        minAmountOut,
+        vault,  // Send back to vault
+        swapData
+    );
+
+    emit RewardTokenSold(vault, token, amount, amountOut);
+}
+```
+
+## Events
+
+```solidity
+event SwapExecuted(
+    address indexed tokenIn,
+    address indexed tokenOut,
+    uint256 amountIn,
+    uint256 amountOut,
+    address recipient
+);
+
+event SwapFailed(
+    address indexed tokenIn,
+    address indexed tokenOut,
+    uint256 amountIn,
+    string reason
+);
+```
+
+## Error Handling
+
+### Revert on Slippage
+
+```solidity
+function swap(...) external returns (uint256 amountOut) {
+    // Execute swap
+    amountOut = _executeSwap(...);
+
+    // Check slippage
+    require(amountOut >= minAmountOut, "Insufficient output");
+
+    return amountOut;
+}
+```
+
+### Try-Catch Pattern
+
+```solidity
+function trySwap(...) external returns (bool success, uint256 amountOut) {
+    try swapper.swap(...) returns (uint256 out) {
+        return (true, out);
+    } catch Error(string memory reason) {
+        emit SwapFailed(tokenIn, tokenOut, amountIn, reason);
+        return (false, 0);
+    }
+}
+```
+
+## Gas Optimization
+
+### Approve Once
+
+```solidity
+// Set unlimited approval (careful!)
+IERC20(token).approve(swapper, type(uint256).max);
+
+// Or track allowances
+if (IERC20(token).allowance(address(this), swapper) < amount) {
+    IERC20(token).approve(swapper, amount);
+}
+```
+
+### Batch Swaps
+
+```solidity
+function swapBatch(
+    address[] calldata tokensIn,
+    uint256[] calldata amountsIn,
+    address[] calldata tokensOut,
+    uint256[] calldata minAmountsOut,
+    address recipient,
+    bytes[] calldata swapDatas
+) external returns (uint256[] memory amountsOut)
+```
+
+## Best Practices
+
+### For Rebalancers
+
+1. **Check liquidity** - Ensure sufficient DEX depth
+2. **Use appropriate slippage** - Balance protection vs execution
+3. **Monitor gas** - Swap costs vs value gained
+4. **Verify recipient** - Ensure correct destination
+
+### For Developers
+
+1. **Validate inputs** - Check addresses and amounts
+2. **Handle failures** - Implement retry logic
+3. **Log operations** - Emit detailed events
+4. **Test thoroughly** - Cover edge cases
+
+## Choosing a Swapper
+
+| Feature | Uniswap V3 | 1inch |
+|---------|-----------|-------|
+| **Gas Cost** | Lower | Higher |
+| **Price** | Good | Best |
+| **Simplicity** | Simple | Complex |
+| **Reliability** | High | Medium |
+
+**Recommendation:**
+- Small swaps (< $10k): Uniswap V3
+- Large swaps (> $10k): 1inch
+- Stable pairs: Uniswap V3 (lower gas)
+
+## Next Steps
+
+- **[Uniswap V3 Integration](/protocol/periphery/swapper/uniswap-v3)** - Direct pool swaps
+- **[1inch Integration](/protocol/periphery/swapper/1inch)** - Aggregator swaps
+- **[Rebalancing](/protocol/controller/vaults/rebalancing)** - Using swapper for rebalancing
+- **[Rewards](/protocol/controller/vaults/rewards)** - Selling reward tokens

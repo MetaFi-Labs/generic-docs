@@ -1,0 +1,45 @@
+# Vault Accounting
+
+When calculating how many GenericUnit tokens to mint or burn during deposits and redemptions, the Controller uses a dual-pricing mechanism that considers both the share token price and the underlying asset (collateral) price.
+
+| Price Type | Deposit | Redemption |
+|------------|---------|------------|
+| **Unit Token** | `$1.00` | `min($1.00, Collateral $ Value / Total Units Outstanding)` |
+| **Asset (Collateral)** | `min($1.00, oracle price)` | `max($1.00, oracle price)` |
+
+The protocol operates under the assumption that any deviation from peg of its collateral assets is temporary, and prices will eventually return to $1.00.
+This conservative pricing approach protects the protocol from adverse selection during volatility.
+If the protocol accepted off-peg assets at market value in the opposite direction (above peg on deposits, below peg on redemptions), it would be vulnerable to exploitation and suffer permanent losses.
+
+## Deposit Calculations
+
+Formula:
+```
+Shares to Mint = (Asset Amount × min($1.00, Asset Price)) / Share Price
+```
+
+### Shares Minted for 1000 Asset Deposit
+
+The following table shows how many shares are minted when depositing 1000 units of an asset at different price scenarios:
+
+| Share \ Asset Price | $0.995 | $1.000 | $1.005 |
+|---------------------|--------|--------|--------|
+| **$1.000** | 995.00 | 1,000.00 | 1,000.00 |
+
+:::info
+Share deposit price is always $1.
+:::
+
+### Assets Redeemed for 1000 GenericUnit Tokens
+
+Formula:
+```
+Assets to Return = (Share Amount × Share Price) / max($1.00, Asset Price)
+```
+
+The following table shows how many asset units are returned when redeeming 1000 GenericUnit tokens at different price scenarios:
+
+| Share \ Asset Price | $0.995 | $1.000 | $1.005 |
+|---------------------|--------|--------|--------|
+| **$1.000** | 1,000.00 | 1,000.00 | 995.02 |
+| **$0.995** | 995.00 | 995.00 | 990.05 |

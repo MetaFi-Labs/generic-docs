@@ -1,0 +1,71 @@
+# Generic Protocol Overview
+
+The Generic Protocol is the underlying infrastructure that powers GUSD and other whitelabeled tokens. It provides a multi-chain yield aggregation system where users deposit stablecoin collateral and receive yield-bearing GenericUnit tokens, which can be wrapped into branded tokens like GUSD. The protocol deploys collateral into vetted DeFi strategies and distributes earned yield across participating chains and dapps.
+
+## Core Components
+
+### GenericUnit
+
+GenericUnit is the protocol's core share token that represents ownership of the collateral basket. It maintains a target price of $1.00 and can be redeemed for underlying stablecoins. GenericUnit serves as the foundation for all whitelabeled tokens in the ecosystem, including GUSD, which wraps GenericUnit at a 1:1 ratio to provide a branded user experience.
+
+### GUSD (Whitelabeled Token)
+
+GUSD is a whitelabeled version of GenericUnit that provides a branded interface for users. Multiple whitelabeled tokens can coexist on the same GenericUnit base, each maintaining a 1:1 wrap/unwrap ratio while sharing the same underlying collateral and yield mechanics. This architecture allows different brands to leverage the protocol's infrastructure without fragmenting liquidity.
+
+### Controller
+
+The Controller is the central orchestration contract that manages all protocol operations. It calculates how many GenericUnit tokens to mint during deposits and how much collateral to return during redemptions. The Controller manages vault allocations, enforces deposit caps and diversification limits, integrates with Chainlink price oracles for accurate asset pricing, coordinates rebalancing operations between vaults, and controls access through role-based permissions.
+
+### Vaults
+
+Vaults are specialized contracts that hold specific stablecoin types (USDC, USDT) and deploy them to yield-generating strategies. Each vault manages its own asset type and interacts with external DeFi protocols to earn returns. Vaults follow the ERC7575 Multi-Asset Vaults standard, allowing them to share GenericUnit as a common share token while maintaining separate collateral pools. The protocol maintains multiple vaults per asset type to ensure diversification.
+
+### Bridge Coordinators
+
+Bridge Coordinators enable GUSD and GenericUnit to exist across multiple blockchain networks. On Ethereum (L1), the coordinator locks tokens when users bridge to other chains. On Layer 2 networks, coordinators mint and burn tokens to maintain supply consistency. The bridging system uses multiple messaging protocols like LayerZero and Linea to ensure secure cross-chain communication while keeping the underlying collateral safely stored on Ethereum.
+
+## How It Works
+
+### 1. Deposit
+Users deposit stablecoins (USDC, USDT) into the protocol and receive GenericUnit tokens at a 1:1 ratio (assuming assets are at peg).
+
+### 2. Yield Generation
+Deposited collateral is allocated to various yield-generating strategies across different vaults, earning base yield plus reward tokens.
+
+### 3. Yield Distribution
+Every 7 days, new GenericUnit tokens are minted representing earned yield and distributed proportionally to chains and dapps based on their TVL contribution.
+
+### 4. Redemption
+Users can redeem GenericUnit tokens for underlying collateral at the current redemption price, which reflects the total collateral value divided by total units outstanding.
+
+## Multi-Chain Architecture
+
+### Ethereum Mainnet (L1)
+
+Ethereum serves as the protocol's home base where all critical infrastructure resides. The primary Controller deployment manages all protocol logic and coordinates operations across the entire system. All vaults are deployed on Ethereum, holding and deploying the actual stablecoin collateral to yield-generating strategies. Chainlink price feeds provide accurate asset pricing data exclusively on L1, ensuring reliable valuation across all operations. The L1 Bridge Coordinator handles cross-chain message routing and maintains the authoritative record of token supply distribution across all networks.
+
+### Layer 2 Networks
+
+GUSD and GenericUnit extend to multiple Layer 2 networks. Each L2 deployment includes a local GenericUnit token contract that represents the bridged tokens on that chain. When tokens are bridged to L2, the L1 supply is locked and an equivalent amount is minted on the destination chain, maintaining perfect supply synchronization across all networks.
+
+## Risk Management
+
+### Diversification Strategy
+
+The protocol enforces diversification at multiple levels to prevent over-concentration of risk. Each asset type has its own dedicated vault (one vault for USDC, one for USDT, etc.), and within each vault, the Vault Manager can allocate collateral across multiple yield-generating strategies. In the current implementation, each vault deploys to a single strategy, but future versions will support multiple strategies per vault, allowing the Vault Manager to spread risk across different DeFi protocols like Morpho, Aave, and Sky.
+
+Hard caps limit the absolute amount any single vault can hold, while proportional caps ensure no vault exceeds a certain percentage of total protocol assets. These limits are automatically enforced during deposits and redemptions, making it impossible for the protocol to accidentally violate its own diversification rules.
+
+### Safety Buffer
+
+A portion of earned yield is retained as a safety buffer rather than being immediately distributed to chains and dapps. This buffer serves as a protective cushion against temporary market volatility, strategy underperformance, or unexpected losses. By maintaining this reserve, the protocol can absorb negative events without immediately impacting GenericUnit holders, helping to maintain the protocol's over-collateralization ratio even during difficult market conditions.
+
+### Conservative Pricing
+
+The protocol employs an asymmetric pricing mechanism designed to protect against adverse selection during stablecoin depegging events. During deposits, assets are valued at the minimum of their oracle price or $1.00, meaning users receive fewer GenericUnit tokens if they deposit depegged stablecoins.
+
+During redemptions, assets are valued at the maximum of their oracle price or $1.00, ensuring users receive more collateral if stablecoins are trading below peg. This conservative approach prevents users from exploiting temporary price deviations to extract value from the protocol.
+
+### Emergency Controls
+
+The protocol includes multiple safety mechanisms that can be activated during crises. The Emergency Manager role can pause all deposits and redemptions to prevent further harm while issues are investigated and resolved. Emergency rebalancing authorization allows the protocol to move assets even when normal constraints would prevent it, enabling rapid response to failing strategies or compromised protocols. All sensitive operations require multi-signature approval from multiple parties, ensuring no single entity can unilaterally take actions that affect user funds.

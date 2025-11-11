@@ -1,0 +1,53 @@
+# Vault Limits
+
+The Controller enforces multiple layers of risk management through vault limitations.
+
+These limits ensure diversification and are checked during deposit and redemption operations. If a deposit would push a vault over its cap, the transaction reverts, ensuring the protocol maintains its risk parameters automatically.
+
+Vaults that are out of limits can be rebalanced to maintain efficiency.
+
+## Types of Limits
+
+### Hard Cap
+
+Each vault has a maximum capacity to prevent over-concentration in any single strategy or asset type. This cap can be adjusted by governance based on strategy maturity and risk assessment.
+
+### Maximum Proportion Cap
+
+No single vault can exceed a certain percentage of total protocol assets (e.g., 30%).
+
+### Minimum Proportion Cap
+
+No single vault can fall below a certain percentage of total protocol assets (e.g., 5%).
+
+## Multi-Vault Scenarios
+
+The following examples show potential vault distributions and how they affect limits.
+
+Total TVL is $100M. Each vault has a $50M hard cap, 45% maximum proportion cap, and 20% minimum proportion cap.
+
+### Balanced Distribution
+
+```
+USDC: $33.3M (33.3%)
+USDT: $33.3M (33.3%)
+USDS: $33.4M (33.4%)
+```
+
+### Imbalanced Distribution
+
+```
+USDC: $44M (44%) ← Near limit
+USDT: $30M (30%)
+USDS: $26M (26%)
+```
+
+The USDC vault is near the maximum proportion cap limit. Deposits larger than $1M into the USDC vault will be reverted.
+
+```
+USDC: $40M (40%)
+USDT: $40M (40%)
+USDS: $20M (20%) ← Near limit
+```
+
+The USDS vault is near the minimum proportion cap limit. Withdrawals from USDS or deposits into USDC or USDT vaults will be reverted.

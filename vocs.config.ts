@@ -9,6 +9,37 @@ export default defineConfig({
   sidebar: [
     { text: 'Introduction', link: '/' },
     {
+      text: 'Technical Documentation',
+      collapsed: false,
+      items: [
+        {
+          text: 'Generic Protocol',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/protocol/overview', },
+            { text: 'Unit', link: '/protocol/unit', },
+            { text: 'Vault', link: '/protocol/vault', },
+            {
+              text: 'Vault Controller',
+              collapsed: false,
+              items: [
+                { text: 'Overview', link: '/protocol/controller/overview'},
+                { text: 'Accounting', link: '/protocol/controller/accounting' },
+                { text: 'Limits', link: '/protocol/controller/limits' },
+                { text: 'Vault Management', link: '/protocol/controller/managing' },
+                { text: 'Price Feeds', link: '/protocol/controller/price-feeds' },
+                { text: 'Rebalancing', link: '/protocol/controller/rebalancing' },
+                { text: 'Yield Distribution', link: '/protocol/controller/yield-distribution' },
+                { text: 'Rewards', link: '/protocol/controller/rewards' },
+                { text: 'Config', link: '/protocol/controller/config' },
+                { text: 'Emergency', link: '/protocol/controller/emergency' },
+              ],
+            },
+          ],
+        },
+      ]
+    },
+    {
       text: 'Code Reference',
       collapsed: true,
       items: [

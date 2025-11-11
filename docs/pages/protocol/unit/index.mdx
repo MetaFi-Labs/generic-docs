@@ -1,0 +1,17 @@
+# Generic Unit
+
+Generic Unit is a share token that represents user ownership in the Generic protocol, adhering to the [ERC7575 Multi-Asset Vaults](https://eips.ethereum.org/EIPS/eip-7575) standard. It serves as the protocol's primary medium for value transfer and storage while maintaining its peg. Users can mint Generic Unit by depositing assets into vaults and redeem it to withdraw their underlying assets.
+
+## Bridging of Generic Unit
+
+Generic Unit is a natively multichain asset. When users bridge Generic Unit to a Layer 2, the L1 tokens are locked in the bridge contract, and an equivalent amount of Generic Unit is minted on the destination chain. Conversely, when bridging back to L1, the L2 tokens are burned, and the corresponding L1 tokens are released from the bridge.
+
+## Whitelabeled Units
+
+Generic Unit can be wrapped into branded whitelabeled tokens such as GUSD at a 1:1 ratio. These whitelabeled tokens give users the ability to deploy a new brand on top of Generic Unit while maintaining the same underlying economics and collateral backing.
+
+Whitelabeled tokens can also implement additional functionality beyond basic wrapping, such as custom transfer restrictions, rebasing mechanisms, or integration-specific features, while still maintaining the 1:1 peg with Generic Unit.
+
+:::info
+All whitelabeled tokens wrapping the same Generic Unit are fungible with each other since they represent the same claim on the underlying assets held in the vaults.
+:::

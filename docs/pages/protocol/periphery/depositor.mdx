@@ -1,0 +1,413 @@
+# Depositor
+
+The Depositor is a helper contract that makes depositing into the protocol easier. Instead of figuring out which vault to use and calling multiple functions, you just approve your tokens and call one simple deposit function.
+
+## What is the Depositor?
+
+The Depositor simplifies deposits by:
+
+- **Automatic Routing**: Figures out which vault to use for your asset
+- **Single Transaction**: Approve once, deposit once - that's it
+- **Gas Efficient**: Optimized for lower transaction costs
+- **Beginner Friendly**: No need to understand vaults or controllers
+
+## Why Use the Depositor?
+
+### Without Depositor (Complex)
+
+You'd need to:
+1. Find the right vault address for your asset
+2. Approve the vault to spend your tokens
+3. Call deposit on the vault with correct parameters
+4. Hope you got everything right
+
+### With Depositor (Simple)
+
+You just:
+1. Approve Depositor to spend your tokens
+2. Call `deposit(asset, amount, recipient)`
+3. Done! Shares arrive in your wallet
+
+## How to Use It
+
+### Basic Deposit
+
+**Step 1 - Approve:**
+```
+Approve Depositor to spend your USDC
+(One-time approval, reusable for future deposits)
+```
+
+**Step 2 - Deposit:**
+```
+Call: depositor.deposit(USDC_address, 1000_USDC, your_address)
+Result: Receive GenericUnit shares
+```
+
+**That's it!** The Depositor handles:
+- Finding the USDC vault
+- Routing your deposit correctly
+- Minting shares to you
+
+### Multiple Assets
+
+Want to deposit USDC and USDT together?
+
+**Option 1 - Separate calls:**
+```
+depositor.deposit(USDC, 1000, you)
+depositor.deposit(USDT, 500, you)
+```
+
+**Option 2 - Batch deposit (if available):**
+```
+depositor.depositBatch([USDC, USDT], [1000, 500], you)
+```
+
+Both get you the same result: GenericUnit shares based on total value deposited.
+
+## What Happens Behind the Scenes
+
+When you call deposit:
+
+1. **Depositor receives your tokens** - Transfers from your wallet
+2. **Finds the right vault** - Looks up USDC vault from Controller
+3. **Routes to Controller** - Sends deposit through proper channels
+4. **Controller calculates shares** - Based on oracle prices
+5. **Shares minted to you** - GenericUnit arrives in your wallet
+
+All in one transaction!
+
+## Benefits
+
+### For New Users
+
+- **Easier onboarding** - Don't need to understand protocol internals
+- **Fewer mistakes** - Can't accidentally use wrong vault
+- **Better UX** - Simple, familiar deposit flow
+
+### For Everyone
+
+- **Gas savings** - Optimized routing
+- **Flexibility** - Deposit to any recipient address
+- **Reliability** - Battle-tested helper contract
+
+### For Integrators
+
+- **Simple integration** - One contract to interact with
+- **Predictable behavior** - Consistent across all assets
+- **Future-proof** - Works even if vaults change
+
+## Common Use Cases
+
+### Personal Deposits
+
+Deposit your own stablecoins and receive shares:
+```
+deposit(USDC, 10000, myWallet)
+→ Receive ~9,524 GenericUnit (at $1.05 RV)
+```
+
+### Gifting
+
+Deposit and send shares to someone else:
+```
+deposit(USDC, 1000, friendsWallet)
+→ Friend receives GenericUnit
+```
+
+### Smart Contract Integration
+
+Your contract deposits on behalf of users:
+```
+deposit(USDC, userAmount, userAddress)
+→ User gets shares, your contract handles deposit
+```
+
+## Supported Assets
+
+The Depositor works with any asset that has a vault:
+
+- ✅ USDC - Most common
+- ✅ USDT - Tether stablecoin
+- ✅ DAI - Decentralized stablecoin
+- ✅ USDS - Sky's new stablecoin
+- ✅ Future assets - As vaults are added
+
+## Safety & Security
+
+### What's Protected
+
+**Can't steal your funds:**
+- Only executes deposits you explicitly authorize
+- Can't touch tokens you haven't approved
+- No withdrawal or transfer functions
+
+**Immutable routing:**
+- Gets vault addresses from Controller
+- Can't route to arbitrary addresses
+- Follows protocol security model
+
+### What to Check
+
+**Before depositing:**
+- ✅ Verify you're using official Depositor contract
+- ✅ Check you're depositing the right asset
+- ✅ Confirm amount is what you intend
+- ✅ Ensure recipient address is correct
+
+**After depositing:**
+- ✅ Verify shares received in your wallet
+- ✅ Check transaction succeeded on block explorer
+
+## Comparison: Direct vs Depositor
+
+| Aspect | Direct Vault | Using Depositor |
+|--------|--------------|-----------------|
+| Complexity | High | Low |
+| Steps | 3-4 | 2 |
+| Need vault address? | Yes | No |
+| Beginner friendly? | No | Yes |
+| Gas cost | Similar | Similar |
+| Flexibility | Same | Same |
+| Recommended for | Advanced users | Everyone |
+
+## Frequently Asked Questions
+
+**Is the Depositor safe to use?**
+Yes. It's a simple routing contract audited alongside the protocol. Can only do what you authorize.
+
+**Does it cost more gas?**
+No. The additional routing is minimal. Gas cost is nearly identical to direct deposits.
+
+**Can I deposit any amount?**
+You can deposit any amount the vault accepts. Very small amounts (dust) may not be economical due to gas.
+
+**What if the depositor doesn't work?**
+You can always deposit directly to vaults. The Depositor is a convenience, not a requirement.
+
+**Can I withdraw through the Depositor?**
+No. Withdrawals/redemptions go directly through the Controller. The Depositor is deposit-only.
+
+**Does the Depositor hold my tokens?**
+Only momentarily during the transaction. It immediately routes them to the protocol vaults.
+
+## For Developers
+
+The Depositor is a simple stateless routing contract. For integration details:
+
+[Developer Documentation →](/protocol/dev-docs/periphery/Depositor.sol/contract.Depositor)
+
+### Integration Example
+
+```typescript
+// TypeScript/ethers.js example
+const depositor = new ethers.Contract(DEPOSITOR_ADDRESS, DEPOSITOR_ABI, signer);
+
+// Approve
+await usdc.approve(depositor.address, amount);
+
+// Deposit
+const tx = await depositor.deposit(
+  usdc.address,  // asset
+  amount,        // amount
+  userAddress    // recipient
+);
+
+await tx.wait();
+console.log("Shares received!");
+```
+
+## Next Steps
+
+- **[Protocol Overview](/protocol)** - Understand what you're depositing into
+- **[GenericUnit](/protocol/share-unit/generic-unit)** - Learn about the shares you receive
+- **[Controller](/protocol/controller)** - How deposits are processed
+- **[Vaults](/protocol/vault)** - Where your collateral goes
+assets[1] = USDT;
+
+uint256[] memory amounts = new uint256[](2);
+amounts[0] = 1000e6;   // 1000 USDC
+amounts[1] = 500e6;    // 500 USDT
+
+depositor.depositBatch(assets, amounts, msg.sender);
+```
+
+### Deposit with Permit
+
+Gas-less approval using EIP-2612:
+
+```solidity
+function depositWithPermit(
+    address asset,
+    uint256 amount,
+    address recipient,
+    uint256 deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+) external returns (uint256 shares) {
+    // Execute permit
+    IERC20Permit(asset).permit(
+        msg.sender,
+        address(this),
+        amount,
+        deadline,
+        v, r, s
+    );
+
+    // Proceed with deposit
+    return deposit(asset, amount, recipient);
+}
+```
+
+## Vault Selection Logic
+
+### Simple Strategy
+
+Use first available vault:
+
+```solidity
+function getVaultForAsset(address asset)
+    public view returns (address) {
+    address[] memory vaults = controller.getVaults();
+
+    for (uint i = 0; i < vaults.length; i++) {
+        if (IControlledVault(vaults[i]).asset() == asset) {
+            return vaults[i];
+        }
+    }
+
+    revert("No vault found");
+}
+```
+
+### Smart Routing
+
+Choose vault with best conditions:
+
+```solidity
+function getBestVault(address asset)
+    public view returns (address) {
+    address[] memory vaults = getVaultsForAsset(asset);
+
+    address bestVault;
+    uint256 bestScore;
+
+    for (uint i = 0; i < vaults.length; i++) {
+        uint256 score = calculateVaultScore(vaults[i]);
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestVault = vaults[i];
+        }
+    }
+
+    return bestVault;
+}
+
+function calculateVaultScore(address vault)
+    internal view returns (uint256) {
+    // Higher score = better vault
+    uint256 score = 100;
+
+    // Prefer vaults with capacity
+    uint256 deposited = IControlledVault(vault).totalDeposited();
+    uint256 limit = controller.getVaultDepositLimit(vault);
+    if (deposited >= limit * 95 / 100) {
+        score -= 50;  // Nearly full
+    }
+
+    // Prefer vaults with higher yield
+    uint256 apr = getVaultAPR(vault);
+    score += apr / 100;  // Add APR percentage
+
+    return score;
+}
+```
+
+## Events
+
+```solidity
+event DepositExecuted(
+    address indexed user,
+    address indexed asset,
+    uint256 amount,
+    uint256 shares
+);
+
+event BatchDepositExecuted(
+    address indexed user,
+    uint256 totalShares
+);
+```
+
+## Integration Examples
+
+### Frontend
+
+```typescript
+async function depositUSDC(amount: bigint) {
+  // Get contracts
+  const usdc = new Contract(USDC_ADDRESS, ERC20_ABI, signer);
+  const depositor = new Contract(DEPOSITOR_ADDRESS, DEPOSITOR_ABI, signer);
+
+  // Approve
+  const approveTx = await usdc.approve(DEPOSITOR_ADDRESS, amount);
+  await approveTx.wait();
+
+  // Deposit
+  const depositTx = await depositor.deposit(
+    USDC_ADDRESS,
+    amount,
+    await signer.getAddress()
+  );
+
+  const receipt = await depositTx.wait();
+
+  // Get shares from event
+  const event = receipt.events.find(e => e.event === 'DepositExecuted');
+  const shares = event.args.shares;
+
+  return shares;
+}
+```
+
+### With Permit (Gas-less)
+
+```typescript
+async function depositWithPermit(amount: bigint) {
+  // Sign permit
+  const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour
+  const { v, r, s } = await signPermit(
+    usdc,
+    DEPOSITOR_ADDRESS,
+    amount,
+    deadline
+  );
+
+  // Deposit with permit (single transaction)
+  const tx = await depositor.depositWithPermit(
+    USDC_ADDRESS,
+    amount,
+    userAddress,
+    deadline,
+    v, r, s
+  );
+
+  return tx.wait();
+}
+```
+
+## Best Practices
+
+1. **Approve exact amount** - Don't use `type(uint256).max`
+2. **Verify vault exists** - Check before depositing
+3. **Handle errors** - Vault may be paused or at limit
+4. **Use permit when possible** - Better UX
+
+## Next Steps
+
+- **[Swapper](/protocol/periphery/swapper)** - Convert assets before deposit
+- **[Controller](/protocol/controller)** - Core deposit logic
+- **[Vaults](/protocol/vault)** - Vault implementations

@@ -1,0 +1,8 @@
+# Rebalancing
+
+Rebalancing is a process of moving assets between vaults to maintain target allocations and diversification. It may include swapping assets via DEXes and transferring collateral between vaults. The Controller's Rebalancing Manager role can trigger rebalancing operations as needed.
+
+To protect user funds during rebalancing, the Controller implements several safeguards:
+- **Swap Slippage Protection**: Maximum allowed slippage per swap set by the Rebalancing Manager (e.g., 0.5%)
+- **Collateral Value Slippage Protection**: Ensures total collateral value doesn't drop by more than a threshold during rebalancing (set by Governance)
+- **Redemption Price Check**: Slippage cannot decrease the value of the collateral such that the redemption price falls below $1. If such a rebalance would be necessary, it must be approved by Governance.

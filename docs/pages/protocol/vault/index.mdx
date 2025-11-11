@@ -1,0 +1,54 @@
+# Generic Vault
+
+Vaults are specialized smart contracts that store and deploy collateral assets. Each vault is dedicated to a specific stablecoin type (USDC, USDT, etc.) and deploys funds to earn yield in external DeFi protocols like Morpho, Aave, or Sky.
+
+Generic Vaults adhere to the [ERC7575 Multi-Asset Vaults](https://eips.ethereum.org/EIPS/eip-7575) standard, allowing them to manage multiple asset types with a single shared token (GenericUnit). Users can deposit one asset type and later redeem their shares for a different asset type from another vault, while the protocol maintains accurate accounting of ownership stakes across all vaults.
+
+## Controlled Vault
+
+Generic Vaults are implemented as Controlled Vaults, delegating most operational logic to a central Controller contract to enable cross-vault cooperation and coordination.
+
+Vaults are responsible for:
+- collateral asset transfers
+- decimal normalization
+- yield strategy interactions
+
+While the Controller oversees high-level operations like:
+- asset conversion
+- unit minting
+- vaults rebalancing
+- rewards collection
+
+### Decimal Normalization
+
+Different ERC20 tokens use varying decimal precision (USDC uses 6 decimals while DAI uses 18). Vaults handle these conversions before calling the Controller, ensuring all internal accounting is normalized to prevent precision errors that could arise from inconsistent decimal handling across different collateral types.
+
+### Rebalancing and Rewards Collection
+
+The Controller has privileged access to move funds between vaults for operational purposes such as optimizing asset distribution or collecting reward tokens from DeFi protocols. All fund movements are logged through events, providing an auditable trail of vault operations for monitoring and security verification.
+
+### Asset Conversion
+
+The vault's `convertToAsset` and `convertToShares` functions maintain a nominal 1:1 exchange rate between shares and assets, regardless of market conditions or redemption value. The Controller manages the actual value relationship based on the specific operational context (deposits versus redemptions).
+
+:::danger
+Do not use `convertToAsset` and `convertToShares` functions to determine the actual value of shares versus assets. Always use the appropriate preview functions for accurate conversions.
+:::
+
+For more details about asset conversion, refer to the [Vault Accounting](/protocol/controller/accounting) documentation.
+
+## Vault Yield Strategy
+
+Each vault deploys collateral to external yield-generating protocols like Morpho, Aave, or Sky. The Vault Manager role controls the flow of funds between the vault and its underlying strategies, moving assets into active yield positions to optimize returns or withdrawing funds back to the vault when needed.
+
+The vault implements an automatic deposit threshold to optimize gas efficiency and maintain capital productivity. When user deposits exceed this configured amount, funds are automatically allocated into active yield strategies, ensuring collateral is consistently generating returns rather than sitting idle.
+
+### Liquidity Constraints
+
+DeFi strategies have inherent liquidity constraints that prevent instant withdrawal of all deposited funds. A lending market with 90% utilization has only 10% of funds available for immediate withdrawal.
+
+Users may not be able to withdraw their full balance instantly, particularly during periods of high demand or market volatility. This reflects the operational realities of DeFi protocols and does not indicate lost funds.
+
+:::tip
+The vault's `maxWithdraw` and `maxRedeem` functions accurately report currently available liquidity based on the real-time state of underlying strategies.
+:::

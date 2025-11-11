@@ -1,0 +1,325 @@
+# 1inch Integration
+
+Integration with 1inch DEX aggregator for optimal swap pricing across multiple liquidity sources.
+
+## Overview
+
+1inch aggregator:
+- **Best prices** - Routes through multiple DEXs
+- **Gas optimization** - Splits trades optimally
+- **Partial fills** - Better execution on large trades
+- **MEV protection** - Limit orders and RFQ
+
+## Contract
+
+```solidity
+contract OneInchSwapper is ISwapper {
+    IAggregationRouterV5 public immutable router;
+
+    constructor(address _router) {
+        router = IAggregationRouterV5(_router);
+    }
+
+    function swap(
+        address tokenIn,
+        uint256 amountIn,
+        address tokenOut,
+        uint256 minAmountOut,
+        address recipient,
+        bytes calldata data
+    ) external override returns (uint256 amountOut) {
+        // Decode 1inch swap data
+        (address executor, IAggregationRouterV5.SwapDescription memory desc, bytes memory permit, bytes memory execData) =
+            abi.decode(data, (address, IAggregationRouterV5.SwapDescription, bytes, bytes));
+
+        // Validate
+        require(desc.srcToken == tokenIn, "Wrong input token");
+        require(desc.dstToken == tokenOut, "Wrong output token");
+        require(desc.amount == amountIn, "Wrong amount");
+        require(desc.minReturnAmount >= minAmountOut, "Slippage too high");
+        require(desc.dstReceiver == recipient, "Wrong recipient");
+
+        // Approve router
+        IERC20(tokenIn).approve(address(router), amountIn);
+
+        // Execute swap
+        (amountOut, ) = router.swap(executor, desc, permit, execData);
+
+        require(amountOut >= minAmountOut, "Insufficient output");
+
+        emit SwapExecuted(tokenIn, tokenOut, amountIn, amountOut, recipient);
+
+        return amountOut;
+    }
+}
+```
+
+## Getting Swap Data
+
+### 1inch API
+
+```typescript
+async function get1inchSwapData(
+  fromToken: string,
+  toToken: string,
+  amount: bigint,
+  slippage: number = 0.5
+): Promise<string> {
+  const url = `https://api.1inch.dev/swap/v5.2/1/swap?` +
+    `src=${fromToken}&` +
+    `dst=${toToken}&` +
+    `amount=${amount}&` +
+    `from=${swapperAddress}&` +
+    `slippage=${slippage}&` +
+    `disableEstimate=true`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${ONEINCH_API_KEY}`
+    }
+  });
+
+  const data = await response.json();
+
+  // Encode for swapper
+  return ethers.utils.defaultAbiCoder.encode(
+    ['address', 'tuple(address,address,address,address,uint256,uint256,uint256)', 'bytes', 'bytes'],
+    [
+      data.tx.to,  // executor
+      [
+        data.fromToken.address,
+        data.toToken.address,
+        swapperAddress,
+        recipientAddress,
+        data.fromToken.amount,
+        data.toToken.amount,
+        0  // flags
+      ],
+      '0x',  // permit (empty)
+      data.tx.data
+    ]
+  );
+}
+```
+
+### Quote API
+
+Get expected output without executing:
+
+```typescript
+async function get1inchQuote(
+  fromToken: string,
+  toToken: string,
+  amount: bigint
+): Promise<bigint> {
+  const url = `https://api.1inch.dev/swap/v5.2/1/quote?` +
+    `src=${fromToken}&` +
+    `dst=${toToken}&` +
+    `amount=${amount}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${ONEINCH_API_KEY}`
+    }
+  });
+
+  const data = await response.json();
+  return BigInt(data.toAmount);
+}
+```
+
+## Usage Examples
+
+### Basic Swap
+
+```solidity
+// Get swap data from 1inch API
+bytes memory swapData = get1inchSwapData(USDC, USDT, 1000e6);
+
+// Execute swap
+uint256 amountOut = swapper.swap(
+    USDC,
+    1000e6,
+    USDT,
+    995e6,  // Min 995 USDT
+    msg.sender,
+    swapData
+);
+```
+
+### Large Trade
+
+```solidity
+// For $100k+ trades, 1inch splits across multiple pools
+bytes memory swapData = get1inchSwapData(USDC, DAI, 100_000e6);
+
+uint256 amountOut = swapper.swap(
+    USDC,
+    100_000e6,
+    DAI,
+    99_000e18,  // 1% slippage for large trade
+    vault,
+    swapData
+);
+```
+
+## Advanced Features
+
+### Partial Fill
+
+For very large trades:
+
+```solidity
+struct PartialFillOrder {
+    address makerAsset;
+    address takerAsset;
+    uint256 makingAmount;
+    uint256 takingAmount;
+    bytes makerAssetData;
+    bytes takerAssetData;
+}
+
+function executePartialFill(
+    PartialFillOrder memory order,
+    uint256 fillAmount
+) external returns (uint256)
+```
+
+### RFQ (Request for Quote)
+
+Direct market maker integration:
+
+```solidity
+function executeRFQ(
+    RFQOrder memory order,
+    bytes memory signature
+) external returns (uint256)
+```
+
+## Fee Structure
+
+1inch charges:
+- **Network fees** - Gas costs (paid by user)
+- **Surplus** - Price improvement vs market (sometimes shared)
+- **Referral fees** - Optional partnership fees
+
+```solidity
+// Set referrer for fee sharing
+desc.flags = (referrerAddress << 168) | flags;
+```
+
+## Error Handling
+
+### Common Errors
+
+```solidity
+// Insufficient allowance
+error InsufficientAllowance();
+
+// Swap failed
+error SwapFailed(string reason);
+
+// Return amount too low
+error ReturnAmountIsNotEnough();
+```
+
+### Retry Logic
+
+```typescript
+async function executeSwapWithRetry(
+  ...params,
+  maxRetries: number = 3
+): Promise<bigint> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      // Get fresh swap data
+      const swapData = await get1inchSwapData(...);
+
+      // Execute
+      const tx = await swapper.swap(..., swapData);
+      const receipt = await tx.wait();
+
+      return receipt.events[0].args.amountOut;
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+
+      // Wait before retry
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+}
+```
+
+## Gas Optimization
+
+### Approve Once
+
+```solidity
+constructor() {
+    // Approve router for all supported tokens
+    IERC20(USDC).approve(router, type(uint256).max);
+    IERC20(USDT).approve(router, type(uint256).max);
+    IERC20(USDS).approve(router, type(uint256).max);
+}
+```
+
+### Batch Operations
+
+```solidity
+function swapBatch(
+    SwapParams[] calldata swaps
+) external returns (uint256[] memory amountsOut)
+```
+
+## Monitoring
+
+### Track Execution
+
+```solidity
+event OneInchSwapExecuted(
+    address indexed tokenIn,
+    address indexed tokenOut,
+    uint256 amountIn,
+    uint256 amountOut,
+    uint256 priceImpact,
+    string[] pools  // Pools used
+);
+```
+
+### Performance Metrics
+
+```typescript
+interface SwapMetrics {
+  expectedOutput: bigint;
+  actualOutput: bigint;
+  priceImprovement: number;  // %
+  gasUsed: bigint;
+  pools: string[];
+}
+
+async function trackSwapPerformance(tx: TransactionReceipt): SwapMetrics
+```
+
+## Best Practices
+
+1. **Always get fresh quotes** - Don't reuse old swap data
+2. **Set reasonable slippage** - 1-2% for large trades
+3. **Monitor gas costs** - 1inch can be expensive
+4. **Use for large swaps** - Best for $10k+
+5. **Have fallback** - Uniswap V3 as backup
+
+## Comparison: 1inch vs Uniswap V3
+
+| Metric | 1inch | Uniswap V3 |
+|--------|-------|-----------|
+| Price | ✅ Best | ✅ Good |
+| Gas | ❌ Higher | ✅ Lower |
+| Complexity | ❌ Complex | ✅ Simple |
+| Large trades | ✅ Excellent | ⚠️ Good |
+| Reliability | ⚠️ Medium | ✅ High |
+
+## Next Steps
+
+- **[Uniswap V3](/protocol/periphery/swapper/uniswap-v3)** - Alternative swapper
+- **[Swapper](/protocol/periphery/swapper)** - Swapper overview
+- **[Rebalancing](/protocol/controller/vaults/rebalancing)** - Using for rebalancing

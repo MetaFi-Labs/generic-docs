@@ -1,0 +1,416 @@
+# Uniswap V3
+
+Direct Uniswap V3 integration for efficient stablecoin swaps in the Generic protocol.
+
+## Overview
+
+UniswapV3Swapper provides:
+- **Direct pool swaps** - No aggregator overhead
+- **Fee tier selection** - 0.01%, 0.05%, 0.3% pools
+- **Multi-hop routing** - Path-based swaps
+- **USDS special handling** - Via DAI converter for better liquidity
+
+## Contract
+
+```solidity
+contract UniswapV3Swapper is ISwapper, ReentrancyGuard {
+    ISwapRouter public immutable uniswapRouter;
+    IDaiToUsdsConverter public immutable daiToUsdsConverter;
+
+    address public immutable DAI;
+    address public immutable USDS;
+
+    function swap(
+        address assetIn,
+        uint256 amountIn,
+        address assetOut,
+        uint256 minAmountOut,
+        address recipient,
+        bytes calldata swapperData
+    ) external returns (uint256 amountOut);
+}
+```
+
+## Basic Usage
+
+### Single Hop Swap
+
+```solidity
+// USDC → USDT through 0.01% fee pool
+bytes memory path = abi.encodePacked(
+    USDC,
+    uint24(100),  // 0.01% fee tier
+    USDT
+);
+
+uint256 amountOut = swapper.swap(
+    USDC,
+    1000e6,
+    USDT,
+    995e6,  // Min output with 0.5% slippage
+    msg.sender,
+    path
+);
+```
+
+### Fee Tiers
+
+Uniswap V3 has multiple fee tiers:
+
+```solidity
+uint24 constant FEE_LOW = 100;     // 0.01% - Stable pairs
+uint24 constant FEE_MEDIUM = 500;  // 0.05% - Most pairs
+uint24 constant FEE_HIGH = 3000;   // 0.3% - Volatile pairs
+```
+
+**For stablecoins**, use `100` (0.01%):
+
+```solidity
+bytes memory path = abi.encodePacked(
+    USDC,
+    uint24(100),
+    USDT
+);
+```
+
+## Multi-Hop Swaps
+
+### Through Intermediary
+
+```solidity
+// USDS → DAI → USDC
+bytes memory path = abi.encodePacked(
+    USDS,
+    uint24(100),  // USDS/DAI pool
+    DAI,
+    uint24(100),  // DAI/USDC pool
+    USDC
+);
+
+uint256 amountOut = swapper.swap(
+    USDS,
+    1000e18,
+    USDC,
+    995e6,
+    recipient,
+    path
+);
+```
+
+### Path Encoding
+
+```solidity
+function encodePath(
+    address tokenA,
+    uint24 fee1,
+    address tokenB,
+    uint24 fee2,
+    address tokenC
+) public pure returns (bytes memory) {
+    return abi.encodePacked(tokenA, fee1, tokenB, fee2, tokenC);
+}
+```
+
+## USDS Special Handling
+
+USDS has limited DEX liquidity, so we route through DAI:
+
+### USDS → Other
+
+```solidity
+// USDS → USDC
+// Internally: USDS → DAI (via converter) → USDC (via Uniswap)
+
+function swap(...) external returns (uint256 amountOut) {
+    if (assetIn == USDS) {
+        // Convert USDS → DAI (1:1)
+        uint256 daiAmount = daiToUsdsConverter.usdsToUSDC(amountIn);
+
+        // Then DAI → assetOut
+        amountOut = _swapViaUniswap(DAI, daiAmount, assetOut, ...);
+    }
+}
+```
+
+### Other → USDS
+
+```solidity
+// USDC → USDS
+// Internally: USDC → DAI (via Uniswap) → USDS (via converter)
+
+function swap(...) external returns (uint256 amountOut) {
+    if (assetOut == USDS) {
+        // First assetIn → DAI
+        uint256 daiAmount = _swapViaUniswap(assetIn, amountIn, DAI, ...);
+
+        // Then convert DAI → USDS (1:1)
+        amountOut = daiToUsdsConverter.usdcToUSDS(daiAmount);
+    }
+}
+```
+
+## Implementation Details
+
+### Exact Input Swap
+
+```solidity
+function _swapViaUniswap(
+    address tokenIn,
+    uint256 amountIn,
+    address tokenOut,
+    uint256 minAmountOut,
+    address recipient,
+    bytes memory path
+) internal returns (uint256 amountOut) {
+    // Approve router
+    IERC20(tokenIn).approve(address(uniswapRouter), amountIn);
+
+    // Prepare params
+    ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
+        path: path,
+        recipient: recipient,
+        deadline: block.timestamp,
+        amountIn: amountIn,
+        amountOutMinimum: minAmountOut
+    });
+
+    // Execute swap
+    amountOut = uniswapRouter.exactInput(params);
+
+    require(amountOut >= minAmountOut, "Insufficient output");
+
+    emit Swap(tokenIn, tokenOut, amountIn, amountOut);
+
+    return amountOut;
+}
+```
+
+### Quote Function
+
+Get expected output without executing:
+
+```solidity
+function getAmountOut(
+    address tokenIn,
+    uint256 amountIn,
+    address tokenOut,
+    bytes calldata path
+) external view returns (uint256 amountOut) {
+    // Use Quoter for simulation
+    return IQuoter(quoter).quoteExactInput(path, amountIn);
+}
+```
+
+## Slippage Calculation
+
+### From Oracle Price
+
+```solidity
+function calculateMinOutput(
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 slippageBps
+) public view returns (uint256) {
+    // Get prices from oracle
+    uint256 priceIn = getPriceUSD(tokenIn);   // e.g., $1.00
+    uint256 priceOut = getPriceUSD(tokenOut); // e.g., $0.99
+
+    // Calculate expected output
+    uint256 expectedOut = (amountIn * priceIn) / priceOut;
+
+    // Apply slippage
+    return expectedOut * (10000 - slippageBps) / 10000;
+}
+```
+
+**Example:**
+```solidity
+// Swap 1000 USDC → USDT
+// USDC price: $1.00, USDT price: $0.99
+// Expected: 1000 * 1.00 / 0.99 = 1010.10 USDT
+// With 0.5% slippage: 1010.10 * 0.995 = 1005 USDT minimum
+```
+
+### From DEX Quote
+
+```solidity
+function calculateMinOutputFromQuote(
+    uint256 quoteAmount,
+    uint256 slippageBps
+) public pure returns (uint256) {
+    return quoteAmount * (10000 - slippageBps) / 10000;
+}
+```
+
+## Pool Selection
+
+### Find Best Pool
+
+```solidity
+function getBestPool(address tokenA, address tokenB)
+    public view returns (uint24 fee) {
+    // Check all fee tiers
+    uint24[3] memory fees = [uint24(100), 500, 3000];
+
+    uint128 bestLiquidity;
+    uint24 bestFee;
+
+    for (uint i = 0; i < fees.length; i++) {
+        address pool = IUniswapV3Factory(factory).getPool(
+            tokenA,
+            tokenB,
+            fees[i]
+        );
+
+        if (pool != address(0)) {
+            uint128 liquidity = IUniswapV3Pool(pool).liquidity();
+
+            if (liquidity > bestLiquidity) {
+                bestLiquidity = liquidity;
+                bestFee = fees[i];
+            }
+        }
+    }
+
+    require(bestLiquidity > 0, "No pool found");
+    return bestFee;
+}
+```
+
+### Common Pairs
+
+| Pair | Fee Tier | Pool Address |
+|------|----------|--------------|
+| USDC/USDT | 0.01% | `0x3416cf6c708da44db2624d63ea0aaef7113527c6` |
+| DAI/USDC | 0.01% | `0x5777d92f208679db4b9778590fa3cab3ac9e2168` |
+| USDC/DAI | 0.05% | `0x6c6bc977e13df9b0de53b251522280bb72383700` |
+
+## Gas Optimization
+
+### Approve Once
+
+```solidity
+constructor() {
+    // Set unlimited approvals
+    IERC20(USDC).approve(uniswapRouter, type(uint256).max);
+    IERC20(USDT).approve(uniswapRouter, type(uint256).max);
+    IERC20(DAI).approve(uniswapRouter, type(uint256).max);
+    IERC20(USDS).approve(daiToUsdsConverter, type(uint256).max);
+}
+```
+
+### Batch Swaps
+
+Execute multiple swaps efficiently:
+
+```solidity
+function multicall(bytes[] calldata data)
+    external returns (bytes[] memory results)
+```
+
+## Events
+
+```solidity
+event Swap(
+    address indexed assetIn,
+    address indexed assetOut,
+    uint256 amountIn,
+    uint256 amountOut
+);
+
+event DaiUsdsConversion(
+    address indexed fromAsset,
+    address indexed toAsset,
+    uint256 amount
+);
+```
+
+## Integration Example
+
+### In Controller
+
+```solidity
+function rebalance(
+    address fromVault,
+    address toVault,
+    uint256 amount,
+    uint256 minOut
+) external onlyRole(REBALANCER_ROLE) {
+    address fromAsset = IControlledVault(fromVault).asset();
+    address toAsset = IControlledVault(toVault).asset();
+
+    // Withdraw from source
+    IControlledVault(fromVault).withdraw(amount, address(this));
+
+    // Build swap path
+    bytes memory path = abi.encodePacked(
+        fromAsset,
+        uint24(100),  // 0.01% fee
+        toAsset
+    );
+
+    // Swap
+    IERC20(fromAsset).approve(swapper, amount);
+    uint256 amountOut = UniswapV3Swapper(swapper).swap(
+        fromAsset,
+        amount,
+        toAsset,
+        minOut,
+        address(this),
+        path
+    );
+
+    // Deposit to target
+    IERC20(toAsset).approve(address(toVault), amountOut);
+    IControlledVault(toVault).deposit(amountOut, address(this));
+}
+```
+
+## Error Handling
+
+```solidity
+// Insufficient output
+error InsufficientOutput(uint256 amountOut, uint256 minAmountOut);
+
+// Invalid path
+error InvalidPath();
+
+// Pool not found
+error PoolNotFound(address tokenA, address tokenB, uint24 fee);
+```
+
+## Best Practices
+
+1. **Use 0.01% fee tier** - For stablecoin pairs
+2. **Check liquidity** - Ensure pool has sufficient depth
+3. **Set deadlines** - Use `block.timestamp` for immediate execution
+4. **Validate paths** - Ensure correct token ordering
+5. **Monitor gas** - Uniswap V3 is gas-efficient
+
+## Advantages Over 1inch
+
+| Feature | Uniswap V3 | 1inch |
+|---------|-----------|-------|
+| Gas Cost | ✅ Lower (~100k gas) | ❌ Higher (~200k+ gas) |
+| Simplicity | ✅ Simple | ❌ Complex |
+| Reliability | ✅ Always available | ⚠️ API dependency |
+| Stablecoin swaps | ✅ Excellent | ✅ Excellent |
+| Large trades | ⚠️ Good | ✅ Better |
+
+**Use Uniswap V3 when:**
+- Swapping stablecoins
+- Trade size < $50k
+- Gas cost matters
+- Need reliability
+
+**Use 1inch when:**
+- Large trades (>$50k)
+- Need absolute best price
+- Can tolerate higher gas
+
+## Next Steps
+
+- **[1inch Integration](/protocol/periphery/swapper/1inch)** - Alternative for large swaps
+- **[Swapper Overview](/protocol/periphery/swapper)** - Swapper architecture
+- **[Rebalancing](/protocol/controller/vaults/rebalancing)** - Using swapper for rebalancing

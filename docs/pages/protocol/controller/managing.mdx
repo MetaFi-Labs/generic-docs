@@ -1,0 +1,46 @@
+# Managing Vaults
+
+The Controller's Vault Manager role is responsible for managing vaults within the protocol. This includes adding new vaults, updating their settings, and removing deprecated vaults.
+
+## Adding Vaults
+
+The Vault Manager can add new vaults to the Controller with specified settings.
+
+**Parameters:**
+- `asset`: Collateral token address (USDC, USDT, USDS)
+- `vault`: Deployed vault contract address
+- `isMain`: Whether this is the primary vault for the asset
+- `settings`: Vault configuration (caps, enabled status)
+
+## Updating Settings
+
+The Vault Manager can update vault settings to adjust caps or enable/disable vaults.
+
+**What Can Change:**
+- Hard cap (up or down)
+- Proportional cap (up or down)
+- Main vault designation
+
+## Removing Vaults
+
+The Vault Manager can remove vaults that are no longer needed.
+
+**Requirements:**
+- Vault must be empty (totalAssets == 0)
+- Vault must not be main vault
+
+## Main vs Secondary Vaults
+
+**Main Vault:**
+- Primary vault for an asset
+- Default destination for deposits
+- Accessible via `vaultFor(asset)`
+- Only vault that accepts new deposits for that asset
+
+**Secondary Vault:**
+- Cannot accept new deposits
+- Serves as temporary holding during vault upgrades
+- Allows gradual fund migration from old to new vault
+- Removed once migration is complete
+
+The Controller allows multiple vaults per asset solely as a mechanism to safely upgrade and migrate funds. During a vault upgrade, a new vault is deployed and designated as the main vault, while the previous main vault becomes a secondary vault. This transition period allows for gradual fund migration from the old vault to the new one. Users cannot deposit directly into secondary vaults—all new deposits go to the main vault.

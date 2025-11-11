@@ -1,0 +1,38 @@
+# Price Feeds
+
+The Controller uses Chainlink price feeds to ensure accurate asset pricing for deposits, redemptions, and vault valuations.
+
+Only the **Price Feed Manager** role can update price feed configurations.
+
+## Price Feed Source
+
+All asset prices are sourced from **Chainlink Price Feeds**, providing reliable and tamper-resistant market data for supported collateral assets (USDC, USDT, USDS).
+
+## Staleness Protection
+
+The protocol implements staleness protection to ensure price data is current and valid:
+
+**Heartbeat with Buffer:**
+- Each price feed has a defined heartbeat interval (e.g., 24 hours for stablecoins)
+- A buffer is added to the heartbeat to account for network delays
+- If a price hasn't been updated within the heartbeat + buffer period, it's considered stale
+- Stale prices trigger a revert, preventing operations with outdated data
+
+**Example:**
+```
+Heartbeat: 86400 seconds (24 hours)
+Buffer: 60 seconds (1 minute)
+Maximum age: 86460 seconds (24 hours 1 minute)
+```
+
+## Price Normalization
+
+Internally, all prices are normalized to **18 decimals** regardless of the source feed's decimal precision. This standardization:
+- Simplifies calculations across different assets
+- Ensures consistent precision in conversions
+- Prevents rounding errors in multi-asset operations
+
+**Example:**
+- Chainlink USDC/USD feed returns 8 decimals
+- Controller normalizes to 18 decimals for internal use
+- All vault and share calculations use the 18-decimal format
