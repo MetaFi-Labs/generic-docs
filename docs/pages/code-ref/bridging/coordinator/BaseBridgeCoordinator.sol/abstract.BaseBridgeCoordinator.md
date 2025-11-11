@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-bridging/blob/7a6c887bd2ad364f3a697790fb47993635f88840/src/coordinator/BaseBridgeCoordinator.sol)
 
 **Inherits:**
-AccessControlUpgradeable, ReentrancyGuardTransientUpgradeable, [IBridgeCoordinator](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/interfaces/IBridgeCoordinator.sol/interface.IBridgeCoordinator.md)
+AccessControlUpgradeable, ReentrancyGuardTransientUpgradeable, [IBridgeCoordinator](/code-ref/bridging/interfaces/IBridgeCoordinator.sol/interface.IBridgeCoordinator.md)
 
 
 ## State Variables

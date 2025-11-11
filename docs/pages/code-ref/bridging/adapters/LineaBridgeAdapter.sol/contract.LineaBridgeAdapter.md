@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-bridging/blob/7a6c887bd2ad364f3a697790fb47993635f88840/src/adapters/LineaBridgeAdapter.sol)
 
 **Inherits:**
-[BaseAdapter](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/adapters/BaseAdapter.sol/abstract.BaseAdapter.md), [ILineaBridgeAdapter](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/interfaces/bridges/linea/ILineaBridgeAdapter.sol/interface.ILineaBridgeAdapter.md)
+[BaseAdapter](/code-ref/bridging/adapters/BaseAdapter.sol/abstract.BaseAdapter.md), [ILineaBridgeAdapter](/code-ref/bridging/interfaces/bridges/linea/ILineaBridgeAdapter.sol/interface.ILineaBridgeAdapter.md)
 
 Bridge adapter using Linea's Message Service for cross-chain messaging
 

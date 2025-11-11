@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-bridging/blob/7a6c887bd2ad364f3a697790fb47993635f88840/src/coordinator/PredepositCoordinator.sol)
 
 **Inherits:**
-[BaseBridgeCoordinator](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/BaseBridgeCoordinator.sol/abstract.BaseBridgeCoordinator.md), [BridgeMessageCoordinator](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/BridgeMessageCoordinator.sol/abstract.BridgeMessageCoordinator.md)
+[BaseBridgeCoordinator](/code-ref/bridging/coordinator/BaseBridgeCoordinator.sol/abstract.BaseBridgeCoordinator.md), [BridgeMessageCoordinator](/code-ref/bridging/coordinator/BridgeMessageCoordinator.sol/abstract.BridgeMessageCoordinator.md)
 
 Abstract contract that coordinates predeposit operations for bridge transactions
 

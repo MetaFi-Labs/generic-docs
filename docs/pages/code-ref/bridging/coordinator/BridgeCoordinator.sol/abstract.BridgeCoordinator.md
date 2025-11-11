@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-bridging/blob/7a6c887bd2ad364f3a697790fb47993635f88840/src/coordinator/BridgeCoordinator.sol)
 
 **Inherits:**
-[BaseBridgeCoordinator](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/BaseBridgeCoordinator.sol/abstract.BaseBridgeCoordinator.md), [AdapterManager](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/AdapterManager.sol/abstract.AdapterManager.md), [EmergencyManager](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/EmergencyManager.sol/abstract.EmergencyManager.md), [BridgeMessageCoordinator](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/BridgeMessageCoordinator.sol/abstract.BridgeMessageCoordinator.md)
+[BaseBridgeCoordinator](/code-ref/bridging/coordinator/BaseBridgeCoordinator.sol/abstract.BaseBridgeCoordinator.md), [AdapterManager](/code-ref/bridging/coordinator/AdapterManager.sol/abstract.AdapterManager.md), [EmergencyManager](/code-ref/bridging/coordinator/EmergencyManager.sol/abstract.EmergencyManager.md), [BridgeMessageCoordinator](/code-ref/bridging/coordinator/BridgeMessageCoordinator.sol/abstract.BridgeMessageCoordinator.md)
 
 Coordinates cross-chain bridging of Generic unit tokens through multiple bridge protocols
 

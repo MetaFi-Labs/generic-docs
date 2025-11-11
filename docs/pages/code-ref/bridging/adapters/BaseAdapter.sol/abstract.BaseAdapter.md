@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-bridging/blob/7a6c887bd2ad364f3a697790fb47993635f88840/src/adapters/BaseAdapter.sol)
 
 **Inherits:**
-[IBridgeAdapter](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/interfaces/IBridgeAdapter.sol/interface.IBridgeAdapter.md), Ownable2Step
+[IBridgeAdapter](/code-ref/bridging/interfaces/IBridgeAdapter.sol/interface.IBridgeAdapter.md), Ownable2Step
 
 Abstract base contract for bridge adapters that provides common functionality
 

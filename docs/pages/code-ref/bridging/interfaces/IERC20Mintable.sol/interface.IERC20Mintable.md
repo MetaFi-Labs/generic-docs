@@ -29,7 +29,7 @@ Requirements:
 - Caller must be the owner
 - `to` address must not be zero
 Emits:
-- [Mint](//Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/interfaces/IERC20Mintable.sol/interface.IERC20Mintable.md#mint) event with recipient and amount
+- [Mint](/code-ref/bridging/interfaces/IERC20Mintable.sol/interface.IERC20Mintable.md#mint) event with recipient and amount
 - {Transfer} event from zero address to recipient
 
 
@@ -56,7 +56,7 @@ Requirements:
 - `from` must have sufficient balance
 - If `from` is different from `spender`, `spender` must have allowance for `from`'s tokens
 Emits:
-- [Burn](//Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/interfaces/IERC20Mintable.sol/interface.IERC20Mintable.md#burn) event with source address and amount
+- [Burn](/code-ref/bridging/interfaces/IERC20Mintable.sol/interface.IERC20Mintable.md#burn) event with source address and amount
 - {Transfer} event from source address to zero address
 
 
@@ -108,4 +108,3 @@ event Burn(address indexed from, uint256 amount);
 |----|----|-----------|
 |`from`|`address`|Address whose tokens are burned|
 |`amount`|`uint256`|Number of tokens burned|
-

@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-bridging/blob/7a6c887bd2ad364f3a697790fb47993635f88840/src/BridgeCoordinatorL1.sol)
 
 **Inherits:**
-[BridgeCoordinator](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/BridgeCoordinator.sol/abstract.BridgeCoordinator.md), [PredepositCoordinator](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/PredepositCoordinator.sol/abstract.PredepositCoordinator.md)
+[BridgeCoordinator](/code-ref/bridging/coordinator/BridgeCoordinator.sol/abstract.BridgeCoordinator.md), [PredepositCoordinator](/code-ref/bridging/coordinator/PredepositCoordinator.sol/abstract.PredepositCoordinator.md)
 
 L1-specific BridgeCoordinator that includes predeposit functionality and handles units locking/unlocking
 

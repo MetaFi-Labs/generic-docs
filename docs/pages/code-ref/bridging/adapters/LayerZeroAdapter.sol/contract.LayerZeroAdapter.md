@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-bridging/blob/7a6c887bd2ad364f3a697790fb47993635f88840/src/adapters/LayerZeroAdapter.sol)
 
 **Inherits:**
-[BaseAdapter](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/adapters/BaseAdapter.sol/abstract.BaseAdapter.md), OApp, OAppOptionsType3
+[BaseAdapter](/code-ref/bridging/adapters/BaseAdapter.sol/abstract.BaseAdapter.md), OApp, OAppOptionsType3
 
 Bridge adapter using LayerZero's OApp for cross-chain messaging
 

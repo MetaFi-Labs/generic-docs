@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-bridging/blob/7a6c887bd2ad364f3a697790fb47993635f88840/src/BridgeCoordinatorL2.sol)
 
 **Inherits:**
-[BridgeCoordinator](/Users/naimashhab/Documents/crypto/generic-bridging/docs/src/src/coordinator/BridgeCoordinator.sol/abstract.BridgeCoordinator.md)
+[BridgeCoordinator](/code-ref/bridging/coordinator/BridgeCoordinator.sol/abstract.BridgeCoordinator.md)
 
 L2-specific implementation of bridge coordinator that burns/mints units instead of transferring
 
