@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/controller/PriceFeedManager.sol)
 
 **Inherits:**
-[BaseController](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/controller/BaseController.sol/abstract.BaseController.md)
+[BaseController](/code-ref/protocol/controller/BaseController.sol/abstract.BaseController.md)
 
 Abstract contract for managing Chainlink price feeds for various assets
 

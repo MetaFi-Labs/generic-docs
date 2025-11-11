@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/vault/SingleStrategyVault.sol)
 
 **Inherits:**
-[ControlledERC7575Vault](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/vault/ControlledERC7575Vault.sol/contract.ControlledERC7575Vault.md)
+[ControlledERC7575Vault](/code-ref/protocol/vault/ControlledERC7575Vault.sol/contract.ControlledERC7575Vault.md)
 
 A vault implementation that manages assets by depositing into a single ERC4626 vault
 

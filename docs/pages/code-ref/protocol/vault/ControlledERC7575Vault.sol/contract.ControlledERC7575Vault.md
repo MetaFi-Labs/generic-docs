@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/vault/ControlledERC7575Vault.sol)
 
 **Inherits:**
-ReentrancyGuardTransient, [IERC7575Vault](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/interfaces/IERC7575Vault.sol/interface.IERC7575Vault.md), [IControlledVault](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/interfaces/IControlledVault.sol/interface.IControlledVault.md)
+ReentrancyGuardTransient, [IERC7575Vault](/code-ref/protocol/interfaces/IERC7575Vault.sol/interface.IERC7575Vault.md), [IControlledVault](/code-ref/protocol/interfaces/IControlledVault.sol/interface.IControlledVault.md)
 
 A base vault implementation that conforms to ERC7575 standards and can be managed by a controller
 

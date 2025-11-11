@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/controller/VaultManager.sol)
 
 **Inherits:**
-[BaseController](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/controller/BaseController.sol/abstract.BaseController.md), [PriceFeedManager](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/controller/PriceFeedManager.sol/abstract.PriceFeedManager.md)
+[BaseController](/code-ref/protocol/controller/BaseController.sol/abstract.BaseController.md), [PriceFeedManager](/code-ref/protocol/controller/PriceFeedManager.sol/abstract.PriceFeedManager.md)
 
 Manages vaults within Controller system
 

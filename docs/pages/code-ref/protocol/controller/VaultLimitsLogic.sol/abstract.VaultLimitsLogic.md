@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/controller/VaultLimitsLogic.sol)
 
 **Inherits:**
-[BaseController](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/controller/BaseController.sol/abstract.BaseController.md), [VaultManager](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/controller/VaultManager.sol/abstract.VaultManager.md)
+[BaseController](/code-ref/protocol/controller/BaseController.sol/abstract.BaseController.md), [VaultManager](/code-ref/protocol/controller/VaultManager.sol/abstract.VaultManager.md)
 
 Provides logic for calculating vault deposit and withdrawal limits based on capacity and proportionality
 constraints

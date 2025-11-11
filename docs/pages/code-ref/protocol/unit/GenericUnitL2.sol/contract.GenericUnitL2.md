@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/unit/GenericUnitL2.sol)
 
 **Inherits:**
-[ERC20Mintable](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/unit/ERC20Mintable.sol/contract.ERC20Mintable.md)
+[ERC20Mintable](/code-ref/protocol/unit/ERC20Mintable.sol/contract.ERC20Mintable.md)
 
 A Layer 2 mirror of the GenericUnit token with minting capabilities and interface support detection
 

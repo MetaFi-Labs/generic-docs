@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/unit/whitelabeled/WhitelabeledUnitUpgradeable.sol)
 
 **Inherits:**
-[IWhitelabeledUnit](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/interfaces/IWhitelabeledUnit.sol/interface.IWhitelabeledUnit.md), ERC20PermitUpgradeable
+[IWhitelabeledUnit](/code-ref/protocol/interfaces/IWhitelabeledUnit.sol/interface.IWhitelabeledUnit.md), ERC20PermitUpgradeable
 
 Upgradeable implementation of a whitelabeled unit token that wraps underlying Generic units
 

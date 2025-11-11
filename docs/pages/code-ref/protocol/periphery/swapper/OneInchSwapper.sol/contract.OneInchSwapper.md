@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/periphery/swapper/OneInchSwapper.sol)
 
 **Inherits:**
-Ownable2Step, [ISwapper](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/interfaces/ISwapper.sol/interface.ISwapper.md)
+Ownable2Step, [ISwapper](/code-ref/protocol/interfaces/ISwapper.sol/interface.ISwapper.md)
 
 A swapper implementation that integrates with 1inch Aggregation Router for token swaps
 

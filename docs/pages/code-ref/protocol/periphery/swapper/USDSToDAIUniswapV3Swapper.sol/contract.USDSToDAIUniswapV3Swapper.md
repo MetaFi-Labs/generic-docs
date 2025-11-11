@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/periphery/swapper/USDSToDAIUniswapV3Swapper.sol)
 
 **Inherits:**
-[UniswapV3Swapper](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/periphery/swapper/UniswapV3Swapper.sol/contract.UniswapV3Swapper.md)
+[UniswapV3Swapper](/code-ref/protocol/periphery/swapper/UniswapV3Swapper.sol/contract.UniswapV3Swapper.md)
 
 A specialized Uniswap V3 swapper that handles USDS-DAI conversions
 

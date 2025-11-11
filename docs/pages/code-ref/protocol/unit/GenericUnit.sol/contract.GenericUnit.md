@@ -2,7 +2,7 @@
 [Git Source](https://github.com/MetaFi-Labs/generic-protocol/blob/67cb029193a23b77ffeb3a4df225e716349c580c/src/unit/GenericUnit.sol)
 
 **Inherits:**
-[IGenericShare](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/interfaces/IGenericShare.sol/interface.IGenericShare.md), [ERC20Mintable](/Users/naimashhab/Documents/crypto/generic-protocol/docs/src/src/unit/ERC20Mintable.sol/contract.ERC20Mintable.md)
+[IGenericShare](/code-ref/protocol/interfaces/IGenericShare.sol/interface.IGenericShare.md), [ERC20Mintable](/code-ref/protocol/unit/ERC20Mintable.sol/contract.ERC20Mintable.md)
 
 A mintable ERC20 token that represents stable unit within the Generic Protocol.
 
