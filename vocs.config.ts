@@ -3,10 +3,10 @@ import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
 export default defineConfig({
-  iconUrl: '/favicon.svg',
+  iconUrl: '/img/favicon.svg',
   logoUrl: {
-    light: '/logo-black.svg',
-    dark: '/logo-white.svg',
+    light: '/img/logo-black.svg',
+    dark: '/img/logo-white.svg',
   },
   socials: [
     { icon: 'github', link: 'https://github.com/MetaFi-labs' },
