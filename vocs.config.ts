@@ -2,6 +2,10 @@ import { defineConfig } from 'vocs'
 
 export default defineConfig({
   iconUrl: '/favicon.svg',
+  logoUrl: {
+    light: '/logo-black.svg',
+    dark: '/logo-white.svg',
+  },
   socials: [
     { icon: 'github', link: 'https://github.com/MetaFi-labs' },
     { icon: 'x', link: 'https://x.com/genericmoney' },
