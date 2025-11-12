@@ -1,45 +1,77 @@
 # Vault Accounting
 
-When calculating how many GenericUnit tokens to mint or burn during deposits and redemptions, the Controller uses a dual-pricing mechanism that considers both the share token price and the underlying asset (collateral) price.
+When calculating how many GenericUnit tokens to mint or burn during deposits and redemptions, the Controller uses a contextual-pricing mechanism that considers both the share token accounting price and the underlying asset (collateral) accounting price.
 
-| Price Type | Deposit | Redemption |
-|------------|---------|------------|
-| **Unit Token** | `$1.00` | `min($1.00, Collateral $ Value / Total Units Outstanding)` |
-| **Asset (Collateral)** | `min($1.00, oracle price)` | `max($1.00, oracle price)` |
+## Accounting Price Definitions
 
-The protocol operates under the assumption that any deviation from peg of its collateral assets is temporary, and prices will eventually return to $1.00.
-This conservative pricing approach protects the protocol from adverse selection during volatility.
-If the protocol accepted off-peg assets at market value in the opposite direction (above peg on deposits, below peg on redemptions), it would be vulnerable to exploitation and suffer permanent losses.
+### Share Accounting Price
 
-## Deposit Calculations
+The **share accounting price** is the value assigned to each GenericUnit share token when converting between shares and assets during deposits and redemptions. This price determines how many shares are minted or burned for a given amount of collateral.
 
-Formula:
-```
-Shares to Mint = (Asset Amount × min($1.00, Asset Price)) / Share Price
-```
+- **During deposits**: Always valued at $$\$1.00$$
+- **During redemptions**: Valued at $$min(\$1.00, \frac{\text{Total Collateral Value}}{\text{Total Units Supply}})$$
 
-### Shares Minted for 1000 Asset Deposit
+The redemption formula ensures that if the protocol's collateral value has decreased below its backing requirement, shares are redeemed at their true backing value rather than at peg.
 
-The following table shows how many shares are minted when depositing 1000 units of an asset at different price scenarios:
+### Asset (Collateral) Accounting Price
+
+The **asset accounting price** is the value assigned to the underlying collateral (e.g., USDC, USDT) when converting between assets and shares during deposits and redemptions. This price is derived from oracle feeds and determines how much value the collateral contributes to the calculation.
+
+- **During deposits**: Valued at $$min(\$1.00, \text{oracle price})$$
+- **During redemptions**: Valued at $$max(\$1.00, \text{oracle price})$$
+
+## Conversion Formulas
+
+The conversion between assets and shares uses the accounting prices defined above, which vary based on the operation context (deposit or redemption).
+
+### Asset to Share Conversion
+
+When converting assets (collateral) into shares, the formula is:
+
+$$
+Shares = \frac{\text{Asset Amount } \times \text{ Asset Accounting Price}}{\text{Share Accounting Price}}
+$$
+
+This formula answers: "Given X amount of assets, how many shares should be minted?"
+
+The following table shows how many shares are minted when **depositing** 1000 units of an asset at different price scenarios:
 
 | Share \ Asset Price | $0.995 | $1.000 | $1.005 |
 |---------------------|--------|--------|--------|
 | **$1.000** | 995.00 | 1,000.00 | 1,000.00 |
 
 :::info
-Share deposit price is always $1.
+Share deposit price is always $1.00.
 :::
 
-### Assets Redeemed for 1000 GenericUnit Tokens
+### Share to Asset Conversion
 
-Formula:
-```
-Assets to Return = (Share Amount × Share Price) / max($1.00, Asset Price)
-```
+When converting shares into assets (collateral), the formula is:
 
-The following table shows how many asset units are returned when redeeming 1000 GenericUnit tokens at different price scenarios:
+$$
+Assets = \frac{\text{Share Amount } \times \text{ Share Accounting Price}}{\text{Asset Accounting Price}}
+$$
+
+This formula answers: "Given X amount of shares, how many assets should be returned?"
+
+The following table shows how many asset units are returned when **redeeming** 1000 GenericUnit tokens at different price scenarios:
 
 | Share \ Asset Price | $0.995 | $1.000 | $1.005 |
 |---------------------|--------|--------|--------|
 | **$1.000** | 1,000.00 | 1,000.00 | 995.02 |
 | **$0.995** | 995.00 | 995.00 | 990.05 |
+
+:::info
+Share redemption price is always ≤$1.00.
+:::
+
+:::tip
+**Key Insight**: The accounting prices serve as the exchange rate between assets and shares. By adjusting these prices based on context (deposit vs redemption) and market conditions, the protocol maintains conservative accounting that protects against adverse selection.
+:::
+
+## Price Asymmetry Rationale
+
+The protocol operates under the assumption that any deviation from peg of its collateral assets is temporary, and prices will eventually return to **$1.00**.
+
+This conservative pricing approach protects the protocol from adverse selection during volatility.
+If the protocol accepted off-peg assets at market value in the opposite direction (above peg on deposits, below peg on redemptions), it would be vulnerable to exploitation and suffer permanent losses.
