@@ -1,4 +1,6 @@
 import { defineConfig } from 'vocs'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 
 export default defineConfig({
   iconUrl: '/favicon.svg',
@@ -208,4 +210,8 @@ export default defineConfig({
       ]
     }
   ],
+  markdown: {
+    remarkPlugins: [remarkMath],
+    rehypePlugins: [rehypeKatex],
+  }
 })
