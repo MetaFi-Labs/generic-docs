@@ -24,7 +24,7 @@ Vaults are specialized contracts that hold specific stablecoin types (USDC, USDT
 
 ### Bridge Coordinators
 
-Bridge Coordinators enable GUSD and GenericUnit to exist across multiple blockchain networks. On Ethereum (L1), the coordinator locks tokens when users bridge to other chains. On Layer 2 networks, coordinators mint and burn tokens to maintain supply consistency. The bridging system uses multiple messaging protocols like LayerZero and Linea to ensure secure cross-chain communication while keeping the underlying collateral safely stored on Ethereum.
+Bridge Coordinators enable GUSD and GenericUnit to exist across multiple blockchain networks. On the main chain (Ethereum), the coordinator locks tokens when users bridge to other chains. On periphery chains (including Layer 2s and other networks), coordinators mint and burn tokens to maintain supply consistency. The bridging system uses multiple messaging protocols like LayerZero and Linea to ensure secure cross-chain communication while keeping the underlying collateral safely stored on the main chain.
 
 ## How It Works
 
@@ -42,13 +42,13 @@ Users can redeem GenericUnit tokens for underlying collateral at the current red
 
 ## Multi-Chain Architecture
 
-### Ethereum Mainnet (L1)
+### Main Chain (Ethereum Mainnet)
 
-Ethereum serves as the protocol's home base where all critical infrastructure resides. The primary Controller deployment manages all protocol logic and coordinates operations across the entire system. All vaults are deployed on Ethereum, holding and deploying the actual stablecoin collateral to yield-generating strategies. Chainlink price feeds provide accurate asset pricing data exclusively on L1, ensuring reliable valuation across all operations. The L1 Bridge Coordinator handles cross-chain message routing and maintains the authoritative record of token supply distribution across all networks.
+Ethereum serves as the protocol's home base where all critical infrastructure resides. The primary Controller deployment manages all protocol logic and coordinates operations across the entire system. All vaults are deployed on Ethereum, holding and deploying the actual stablecoin collateral to yield-generating strategies. Chainlink price feeds provide accurate asset pricing data exclusively on the main chain, ensuring reliable valuation across all operations. The main chain Bridge Coordinator handles cross-chain message routing and maintains the authoritative record of token supply distribution across all networks.
 
-### Layer 2 Networks
+### Periphery Chains
 
-GUSD and GenericUnit extend to multiple Layer 2 networks. Each L2 deployment includes a local GenericUnit token contract that represents the bridged tokens on that chain. When tokens are bridged to L2, the L1 supply is locked and an equivalent amount is minted on the destination chain, maintaining perfect supply synchronization across all networks.
+GUSD and GenericUnit extend to multiple periphery chains, including Layer 2 networks and other blockchain ecosystems. Each periphery chain deployment includes a local GenericUnit token contract that represents the bridged tokens on that chain. When tokens are bridged to a periphery chain, the main chain supply is locked and an equivalent amount is minted on the destination chain, maintaining perfect supply synchronization across all networks.
 
 ## Risk Management
 
