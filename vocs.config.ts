@@ -1,7 +1,7 @@
 import { defineConfig } from 'vocs'
 
 export default defineConfig({
-  title: 'Generic Docs',
+  iconUrl: '/favicon.svg',
   socials: [
     { icon: 'github', link: 'https://github.com/MetaFi-labs' },
     { icon: 'x', link: 'https://x.com/genericmoney' },
