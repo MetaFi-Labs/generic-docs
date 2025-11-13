@@ -29,7 +29,11 @@ Bridge Coordinators enable GUSD and GenericUnit to exist across multiple blockch
 ## How It Works
 
 ### 1. Deposit
-Users deposit stablecoins (USDC, USDT) into the protocol and receive GenericUnit tokens at a 1:1 ratio (assuming assets are at peg).
+Users deposit stablecoins (USDC, USDT, etc.) into the protocol and receive GenericUnit tokens at a 1:1 ratio (assuming assets are at peg).
+
+:::tip
+For a simplified deposit experience, use the [Generic Depositor](/periphery/depositor) from the periphery contracts. It automatically handles vault resolution, approvals, and provides convenient functions for depositing, bridging, or predepositing in a single transaction.
+:::
 
 ### 2. Yield Generation
 Deposited collateral is allocated to various yield-generating strategies across different vaults, earning base yield plus reward tokens.
