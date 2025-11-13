@@ -22,9 +22,9 @@ export default defineConfig({
           text: 'Generic Protocol',
           collapsed: false,
           items: [
-            { text: 'Overview', link: '/protocol/overview', },
-            { text: 'Unit', link: '/protocol/unit', },
-            { text: 'Vault', link: '/protocol/vault', },
+            { text: 'Overview', link: '/protocol/overview' },
+            { text: 'Unit', link: '/protocol/unit' },
+            { text: 'Vault', link: '/protocol/vault' },
             {
               text: 'Vault Controller',
               collapsed: true,
@@ -41,6 +41,7 @@ export default defineConfig({
                 { text: 'Emergency', link: '/protocol/controller/emergency' },
               ],
             },
+            { text: 'Predeposit Vault', link: '/protocol/predeposit' },
           ],
         },
         {

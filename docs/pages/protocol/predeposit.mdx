@@ -1,0 +1,22 @@
+# Predeposit Functionality
+
+The predeposit system enables users to deposit tokens on the Ethereum mainnet before a new periphery chain is fully deployed and operational. This mechanism provides early access for users who want to participate in a chain before its official launch.
+
+## How It Works
+
+When users make predeposits, their tokens are held in the protocol's vault system on Ethereum L1. These deposited tokens immediately begin earning yield through the protocol's standard yield generation mechanisms. This means that even before the destination chain launches, the predeposited funds are productive.
+
+The key benefit is that when the new chain becomes available, users can bridge their predeposited units to the destination chain and receive their tokens immediately, rather than needing to wait for deposits to process through the standard flow.
+
+## Key Features
+
+- **Early Access**: Users can secure their position before a chain launches
+- **Immediate Yield**: Predeposited tokens earn yield from the moment of deposit
+- **Seamless Transition**: When the chain deploys, users can bridge their units with no additional waiting period
+- **Flexibility**: If a chain deployment is cancelled or delayed, users can withdraw their predeposits
+
+## Cross-Chain Integration
+
+The predeposit functionality is tightly integrated with the bridging system, which manages the lifecycle of predeposit pools and coordinates the movement of predeposited units to destination chains.
+
+For detailed information about how predeposits are managed, including state transitions, chain identification, and whitelabel token selection, see the [Bridging Predeposit Documentation](/bridging/predeposit).
