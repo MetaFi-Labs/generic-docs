@@ -1,0 +1,31 @@
+# Bridge Adapters
+
+Bridge adapters provide the interface between the Generic Protocol's coordinators and various cross-chain messaging protocols. Each adapter implements a standardized interface while handling the protocol-specific details of message encoding, fee estimation, and delivery confirmation.
+
+## Adapter Architecture
+
+### Bridge Types
+
+Each bridge adapter is assigned a unique bridge type identifier that distinguishes it from other bridging protocols. For example, LayerZero adapters use bridge type 1, while Linea adapters use bridge type 2. This type system allows the coordinator to support multiple bridging protocols simultaneously while maintaining clear separation between them.
+
+### Standardized Interface
+
+All bridge adapters implement a common interface that the coordinator uses to send messages and estimate fees. This interface abstracts away the differences between various bridging protocols, allowing the coordinator to work with any adapter without needing protocol-specific logic.
+
+### Protocol Integration
+
+Each adapter integrates with a specific cross-chain messaging protocol, translating between the coordinator's message format and the protocol's expected format. The adapter handles protocol-specific concerns such as endpoint addressing, gas parameter encoding, and delivery confirmation mechanisms.
+
+## Current Adapter Implementations
+
+### LayerZero Adapter
+
+Integrates with LayerZero's V2 OApp framework for omnichain messaging across 40+ blockchain networks.
+
+[LayerZero Protocol →](https://layerzero.network)
+
+### Linea Bridge Adapter
+
+Connects to Linea's native message service for canonical bridging between Ethereum and Linea.
+
+[Linea Bridge →](https://linea.build)

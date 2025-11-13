@@ -1,0 +1,65 @@
+# Emergency Adapter Removal
+
+The bridge coordinator includes emergency controls that allow for rapid response to detected vulnerabilities, adapter compromises, or supply discrepancies.
+
+## Force Removal Capability
+
+The Emergency Manager role has the authority to **force remove compromised or malicious adapters** from the bridge system. This action immediately prevents the removed adapter from processing any new messages, effectively isolating it from the coordinator.
+
+Unlike a system-wide pause, force removal is surgical - it targets only the compromised adapter while allowing other bridge operations to continue normally. This minimizes disruption to legitimate cross-chain activity.
+
+:::danger
+When an adapter is force removed, **messages currently in transit through that adapter may be lost**. This is an unavoidable consequence of emergency response - removing a compromised adapter immediately prevents further damage, but any messages already being processed by that adapter cannot be completed.
+:::
+
+## Manual Process
+
+The current implementation requires manual intervention by authorized operators with the Emergency Manager role. When suspicious activity is detected or a vulnerability is identified, operators must:
+
+1. Assess the severity of the threat and identify the compromised adapter
+2. Make the decision to force remove the adapter
+3. Execute the removal transaction on-chain
+4. Coordinate response across all affected chains
+5. Notify users with transactions in progress through the removed adapter
+
+This manual process allows for human judgment in critical situations, but requires operators to be available and responsive to potential threats.
+
+The Emergency Manager role is separate from standard administrative privileges, allowing specialized emergency response without requiring full protocol control.
+
+## Message Loss During Emergency
+
+### Why Messages Are Lost
+
+When an adapter is force removed, any messages currently being processed or in transit through that specific adapter will not be delivered. The adapter is immediately disconnected from the coordinator, preventing it from completing any pending operations.
+
+This immediate disconnection is intentional - in a genuine emergency scenario (exploit, vulnerability, compromised adapter), allowing any messages through the compromised adapter could result in greater losses than stopping it immediately, even at the cost of losing legitimate messages in transit.
+
+### User Impact
+
+Users with transactions in progress through a force-removed adapter when the emergency action is taken will need to be handled through recovery procedures after the emergency is resolved. This may involve:
+
+- Manual review of failed transactions
+- Coordination with affected users for remediation
+- Potential governance actions for compensation if losses occurred
+
+## Future Improvements
+
+### Automatic Detection
+
+The next version of the emergency system will include automatic threat detection capabilities:
+
+- Real-time monitoring of message patterns and volumes
+- Anomaly detection algorithms identifying suspicious behavior
+- Automatic triggers for common attack vectors
+- Integration with external security monitoring services
+
+### Message Queuing
+
+Instead of immediately losing messages during emergency adapter removal, the next version will implement a message queue system:
+
+1. **Detection Phase**: Automatic systems detect potential threats in specific adapters
+2. **Queue Mode**: Messages through suspicious adapters are moved to a quarantine queue
+3. **Manual Assessment**: Operators review queued messages to identify legitimate vs malicious transactions
+4. **Selective Processing**: Legitimate messages are released through alternative adapters while malicious ones are permanently blocked
+
+This approach significantly reduces the impact on innocent users while still providing protection against exploits.

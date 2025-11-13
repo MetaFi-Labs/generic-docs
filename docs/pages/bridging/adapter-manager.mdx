@@ -1,0 +1,17 @@
+# Adapter Management
+
+The bridge coordinator's adapter management system controls which bridge adapters are authorized to send and receive cross-chain messages. This system supports multiple adapter configurations per bridge type, enabling safe upgrades and gradual migrations without service interruption.
+
+## Configuration Structure
+
+### Local Adapters
+
+The local adapter configuration for each bridge type specifies which adapter contract handles outbound messages and which adapters are authorized to settle inbound messages. The coordinator stores a single primary outbound adapter that is used when users initiate bridge operations, along with a set of inbound-only adapters that can receive messages but cannot send them.
+
+This distinction between outbound and inbound-only adapters is crucial for safe upgrades. When deploying a new adapter version, it can be added as inbound-only first for testing, then promoted to primary outbound status once verified. The old adapter is simultaneously demoted to inbound-only, allowing it to continue processing pending messages without accepting new ones.
+
+### Remote Adapters
+
+For each bridge type and destination chain combination, the coordinator maintains a set of authorized remote adapter addresses. These addresses represent the adapters deployed on other chains that are permitted to send messages to the current chain. When an inbound message arrives, the coordinator validates that it originated from one of these authorized remote adapters.
+
+Remote adapter configurations mirror the local adapter structure, with a primary remote adapter for each destination chain and additional inbound-only remote adapters for handling messages from deprecated adapter versions. This symmetry ensures that adapter upgrades can be coordinated across chains while maintaining message continuity.

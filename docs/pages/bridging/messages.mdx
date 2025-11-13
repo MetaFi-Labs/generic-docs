@@ -1,0 +1,33 @@
+# Message Types
+
+Cross-chain communication in the Generic Protocol uses structured message types to encode different operations. The primary message type is **BRIDGE**, which handles standard token transfers.
+
+## Message Types
+
+### BRIDGE Message
+
+BRIDGE messages contain the essential information needed to transfer tokens from one chain to another. Each message includes the original sender's address, the intended recipient's address on the destination chain, and the amount of tokens to transfer.
+
+:::info
+Addresses are encoded as bytes32 values to accommodate different address formats across various blockchain networks. See [Address Encoding](#address-encoding) for details.
+:::
+
+The coordinator encodes whitelabel information when applicable, allowing the receiving chain to understand whether tokens should be wrapped into a branded token variant before delivery.
+
+## Failed Message Recovery
+
+Users can initiate a rollback for any failed message by providing the original message data and identifier. The coordinator verifies that the message hash matches its stored failure record, then constructs a new bridge message that sends the tokens back to the original sender on the source chain.
+
+This rollback is itself a standard bridge operation, meaning it incurs the normal bridging fees and goes through the same adapter validation process as any other cross-chain transfer. However, it ensures that users can always recover their funds even when the initial bridge operation cannot complete successfully.
+
+## Message Identifiers
+
+Each cross-chain message is assigned a unique identifier generated from a combination of the message contents, a nonce value, and chain-specific data. These identifiers serve multiple purposes: tracking message delivery status, correlating outbound and inbound events, and enabling rollback operations when messages fail.
+
+The coordinator and adapters emit events containing these identifiers, allowing users and monitoring systems to track messages throughout their lifecycle.
+
+## Address Encoding
+
+Cross-chain messages use bytes32 encoding for addresses to support different address formats across various blockchain networks. Ethereum addresses, being 20 bytes, are converted to bytes32 by adding leading zeros. This conversion is reversible, allowing the receiving chain to extract the original address.
+
+For networks with different address formats, custom encoding and decoding logic may be required. The coordinator's message structure is flexible enough to accommodate these variations while maintaining consistency in how addresses are validated and processed.

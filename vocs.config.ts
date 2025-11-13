@@ -27,7 +27,7 @@ export default defineConfig({
             { text: 'Vault', link: '/protocol/vault', },
             {
               text: 'Vault Controller',
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: 'Overview', link: '/protocol/controller/overview'},
                 { text: 'Accounting', link: '/protocol/controller/accounting' },
@@ -41,6 +41,19 @@ export default defineConfig({
                 { text: 'Emergency', link: '/protocol/controller/emergency' },
               ],
             },
+          ],
+        },
+        {
+          text: 'Bridging',
+          collapsed: true,
+          items: [
+            { text: 'Overview', link: '/bridging/overview' },
+            { text: 'Coordinator', link: '/bridging/coordinator' },
+            { text: 'Predeposit', link: '/bridging/predeposit' },
+            { text: 'Messages', link: '/bridging/messages' },
+            { text: 'Adapters', link: '/bridging/adapters' },
+            { text: 'Adapter Manager', link: '/bridging/adapter-manager' },
+            { text: 'Emergency', link: '/bridging/emergency' },
           ],
         },
       ]

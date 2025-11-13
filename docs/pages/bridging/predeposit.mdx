@@ -1,0 +1,35 @@
+# Predeposit System
+
+The predeposit system allows users to deposit tokens on Ethereum before a new periphery chain is fully deployed. This functionality ensures that early supporters can receive their tokens immediately when the chain launches.
+
+The yield generated during the predeposit period represents additional income for the chain, as these tokens are earning yield before the chain is even operational.
+
+## System Architecture
+
+### Chain Identification
+
+Each predeposit pool is identified by a unique nickname value derived from hashing a nickname string such as "blast" or "scroll". This hash serves as a temporary identifier until the chain's numeric chain ID becomes known. Users deposit tokens into this nickname-based pool, and their deposits are tracked individually.
+
+Once the chain is deployed and its contracts are configured, the Predeposit Manager assigns the actual chain ID to the nickname, linking the predeposit pool to a specific destination chain.
+
+### State Lifecycle
+
+Each predeposit pool progresses through a defined state machine:
+
+```
+DISABLED → ENABLED → DISPATCHED
+              ↓
+          WITHDRAWN
+```
+
+The pool begins in a **DISABLED** state where deposits are not accepted. When preparations for a new chain begin, the Predeposit Manager transitions the pool to **ENABLED**, opening it for user deposits.
+
+After the chain launches, the pool moves to **DISPATCHED**, indicating readiness. At this point, users can start bridging their predeposited funds onto the new chain.
+
+If the chain deployment is cancelled or delayed indefinitely, the pool can transition to **WITHDRAWN**, allowing users to reclaim their deposits.
+
+## Whitelabel Selection
+
+When predeposited units are bridged to a destination chain, the destination chain has the flexibility to choose which whitelabel token to wrap the units into. This allows each periphery chain to customize the user experience and branding of the bridged assets according to their ecosystem's needs.
+
+The whitelabel selection is configured during the chain deployment process and determines how users will interact with their bridged units on the destination chain. This mechanism enables different chains to present the same underlying units under different branded tokens, providing seamless integration with their local protocols and user interfaces.

@@ -1,0 +1,34 @@
+# Bridging Overview
+
+The Generic Protocol's bridging infrastructure enables GenericUnit and whitelabeled tokens to exist across multiple blockchain networks while maintaining supply consistency and value integrity. The system uses a lock-and-mint architecture where tokens are secured on Ethereum mainnet while equivalent representations operate on Layer 2 and other periphery chains.
+
+## Cross-Chain Architecture
+### Main Chain (Ethereum)
+
+Ethereum serves as the canonical source of truth for all GenericUnit tokens. The BridgeCoordinatorL1 contract manages a lock-and-unlock mechanism where tokens are held in escrow when bridged to other chains. All collateral backing GenericUnit remains on Ethereum within the protocol's vault system, ensuring that bridged tokens maintain their redemption value regardless of which chain they exist on.
+
+When users bridge tokens from Ethereum to a periphery chain, their GenericUnit tokens are transferred to and locked within the L1 coordinator contract. The coordinator then sends a cross-chain message via a configured bridge adapter, instructing the destination chain to mint an equivalent amount of tokens to the specified recipient.
+
+### Periphery Chains
+
+Each periphery chain deployment includes a BridgeCoordinatorL2 contract and a local GenericUnit token contract that operates under a burn-and-mint model. When tokens arrive from Ethereum or another chain, the L2 coordinator mints new tokens to the recipient. When tokens leave the chain, the coordinator burns them, ensuring the local supply accurately reflects the amount allocated to that specific chain.
+
+The total supply of GenericUnit tokens across all chains equals the original minted supply on Ethereum. The L1 escrow balance represents all tokens currently bridged to periphery chains, while the circulating L1 supply represents tokens available on Ethereum itself.
+
+:::warning
+An exception to this invariant occurs when tokens are predeposited for chains that have not yet been deployed, or when units are currently in transit during bridging.
+:::
+
+## Bridge Adapters
+
+The protocol uses a modular adapter system to integrate with different cross-chain messaging protocols. Each adapter implements a standardized interface that allows the coordinators to send and receive messages without being tightly coupled to any specific bridging technology.
+
+## Failed Message Recovery
+
+The bridging system includes a rollback mechanism to recover funds when cross-chain messages fail to execute on the destination chain. If an inbound message cannot be processed successfully, perhaps due to a revert in the recipient contract or an issue with message execution, the coordinator records the failure on-chain rather than reverting the entire transaction.
+
+When a message fails, the coordinator stores a hash of the failed message data keyed by the message identifier. This creates an immutable failure record that enables users to initiate a rollback operation later. The rollback sends the tokens back to the original sender on the source chain, ensuring that funds are never permanently lost due to execution failures.
+
+## Whitelabeled Token Support
+
+The bridging system fully supports whitelabeled tokens, allowing projects to bridge their branded versions of GenericUnit across chains. When bridging a whitelabeled token from Ethereum, the L1 coordinator first unwraps it to obtain the underlying GenericUnit, locks that GenericUnit, and sends a message indicating both the source and destination whitelabel contracts. The receiving chain mints GenericUnit and wraps it into the specified destination whitelabel before delivering to the user.

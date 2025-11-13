@@ -1,0 +1,39 @@
+# Bridge Coordinators
+
+Bridge Coordinators are the central contracts that orchestrate cross-chain token transfers within the Generic Protocol. They manage token supply across multiple chains, route messages through bridge adapters, handle failed message recovery, and enforce security constraints. Every cross-chain operation flows through a coordinator contract on both the source and destination chains.
+
+## Coordinator Architecture
+
+The coordinator provides the core messaging and adapter management logic, including message encoding and decoding, adapter configuration and validation, failed message tracking, and emergency adapter removal functionality.
+
+The Bridge Coordinator deployed on Ethereum serves as the authoritative source for cross-chain supply management, implementing a lock-and-unlock mechanism where tokens are held in escrow when bridged to periphery chains.
+
+Bridge Coordinators deployed on periphery chains implement a burn-and-mint model where tokens are minted to recipients when arriving from another chain and burned from senders when departing.
+
+:::info
+The Bridge Coordinator on Ethereum also includes predeposit functionality, allowing tokens to be deposited in escrow for chains that have not yet been deployed. See the [Predeposit](./predeposit) section for more details.
+:::
+
+## Message Flow
+
+### Outbound Messages
+
+When a user initiates a bridge transaction, the coordinator first transfers and locks or burns the tokens from the sender's account using the appropriate mechanism for that chain. It then encodes a bridge message containing the sender address, recipient address, and token amount, along with optional whitelabel information.
+
+The coordinator selects the appropriate bridge adapter based on the specified bridge type and destination chain, validates that the adapter is configured and authorized, and calls the adapter's send function with the encoded message and any protocol-specific parameters. The adapter handles the actual cross-chain transmission and returns a unique message identifier that can be used for tracking and potential rollback operations.
+
+### Inbound Messages
+
+When a bridge adapter receives a cross-chain message, it decodes the payload and calls the coordinator's `settleInboundMessage` function. The coordinator validates that the calling adapter is authorized for the specified bridge type and source chain, ensuring the message originates from a trusted source.
+
+The coordinator then decodes the bridge message, extracts the recipient and amount information, and releases tokens to the recipient using the appropriate mechanism (unlock on L1, mint on L2). If the message specifies a destination whitelabel contract, the coordinator wraps the GenericUnit tokens into that whitelabel before final delivery.
+
+## Emergency Controls
+
+The coordinator provides emergency adapter removal capabilities that allow the Emergency Manager role to force remove compromised or malicious adapters in response to detected vulnerabilities, adapter compromises, or supply discrepancies. This surgical approach targets only the problematic adapter while allowing other bridge operations to continue.
+
+:::danger
+Force removing an adapter may result in loss of messages currently in transit through that specific adapter. This is an unavoidable consequence of emergency response to protect the system from further damage. See the [Emergency](./emergency) section for more details.
+:::
+
+The Adapter Manager role, held by governance, has authority to reconfigure adapters after issues are resolved.
