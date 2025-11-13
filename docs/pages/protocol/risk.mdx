@@ -1,0 +1,33 @@
+# Risk Management
+
+## Diversification
+
+The protocol enforces diversification at multiple levels to prevent over-concentration of risk. Each asset type has its own dedicated vault (one vault for USDC, one for USDT, etc.), and within each vault, the Vault Manager can allocate collateral across multiple yield-generating strategies. Hard caps limit the absolute amount any single vault can hold, while proportional caps ensure no vault exceeds a certain percentage of total protocol assets. These limits are automatically enforced during deposits and redemptions, making it impossible for the protocol to accidentally violate its own diversification rules.
+
+In the current implementation, each vault deploys to a single strategy, but future versions will support multiple strategies per vault, allowing the Vault Manager to spread risk across different DeFi protocols like Morpho, Aave, and Sky.
+
+The protocol only deploys to strategies that are capital-preserving and continuously growing under normal circumstances, such as lending markets. Strategies with inherent principal risk like liquidity pools are excluded, as these can experience impermanent loss or value fluctuations that would violate the protocol's capital preservation requirements.
+
+## Safety Buffer
+
+A portion of earned yield is retained as a safety buffer rather than being immediately distributed to chains and dapps. This buffer serves as a protective cushion against temporary market volatility, strategy underperformance, or unexpected losses. By maintaining this reserve, the protocol can absorb negative events without immediately impacting GenericUnit holders, helping to maintain the protocol's over-collateralization ratio even during difficult market conditions.
+
+## Liquidity Management
+
+Because the protocol allocates deposited collateral to yield-generating strategies, not all assets remain immediately liquid in the vaults. This creates potential liquidity constraints during periods of high redemption volume, commonly known as a "bank run" scenario.
+
+When users request redemptions, the protocol must have sufficient liquid assets available in vaults to fulfill those requests. If too much capital is deployed to yield strategies, the protocol may be unable to process large-scale redemptions without first withdrawing assets from those strategies. Most lending markets allow instant withdrawals, but during extreme market stress, even these strategies may face liquidity limitations.
+
+The Vault Manager monitors liquidity ratios and maintains appropriate reserve levels to balance yield optimization with redemption capacity. In situations where available liquidity is exhausted, redemptions may be temporarily delayed until assets can be withdrawn from yield strategies.
+
+Users should understand that while GenericUnit maintains its redemption value, the timing of redemptions may be affected during periods of extreme market stress or coordinated withdrawal attempts. Limited redemption capacity can also impact the token's peg on secondary markets. Normally, arbitrageurs maintain the peg by buying discounted tokens on secondary markets and redeeming them at par value through the protocol. However, when redemptions are constrained, this arbitrage becomes unprofitable or impossible to execute, removing the primary mechanism that keeps the token pegged. This creates a potential depegging risk during liquidity crises, even when the underlying collateral remains fully backed.
+
+## Conservative Pricing
+
+The protocol employs an asymmetric pricing mechanism designed to protect against adverse selection during stablecoin depegging events. During deposits, assets are valued at the minimum of their oracle price or $1.00, meaning users receive fewer GenericUnit tokens if they deposit depegged stablecoins.
+
+During redemptions, assets are valued at the maximum of their oracle price or $1.00, ensuring users receive more collateral if stablecoins are trading below peg. This conservative approach prevents users from exploiting temporary price deviations to extract value from the protocol.
+
+## Emergency Controls
+
+The protocol includes multiple safety mechanisms that can be activated during crises. The Emergency Manager role can pause all deposits and redemptions to prevent further harm while issues are investigated and resolved. Emergency rebalancing authorization allows the protocol to move assets even when normal constraints would prevent it, enabling rapid response to failing strategies or compromised protocols. All sensitive operations require multi-signature approval from multiple parties, ensuring no single entity can unilaterally take actions that affect user funds.

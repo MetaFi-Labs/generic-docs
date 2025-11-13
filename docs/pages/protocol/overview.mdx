@@ -53,25 +53,3 @@ Ethereum serves as the protocol's home base where all critical infrastructure re
 ### Periphery Chains
 
 GUSD and GenericUnit extend to multiple periphery chains, including Layer 2 networks and other blockchain ecosystems. Each periphery chain deployment includes a local GenericUnit token contract that represents the bridged tokens on that chain. When tokens are bridged to a periphery chain, the main chain supply is locked and an equivalent amount is minted on the destination chain, maintaining perfect supply synchronization across all networks.
-
-## Risk Management
-
-### Diversification Strategy
-
-The protocol enforces diversification at multiple levels to prevent over-concentration of risk. Each asset type has its own dedicated vault (one vault for USDC, one for USDT, etc.), and within each vault, the Vault Manager can allocate collateral across multiple yield-generating strategies. In the current implementation, each vault deploys to a single strategy, but future versions will support multiple strategies per vault, allowing the Vault Manager to spread risk across different DeFi protocols like Morpho, Aave, and Sky.
-
-Hard caps limit the absolute amount any single vault can hold, while proportional caps ensure no vault exceeds a certain percentage of total protocol assets. These limits are automatically enforced during deposits and redemptions, making it impossible for the protocol to accidentally violate its own diversification rules.
-
-### Safety Buffer
-
-A portion of earned yield is retained as a safety buffer rather than being immediately distributed to chains and dapps. This buffer serves as a protective cushion against temporary market volatility, strategy underperformance, or unexpected losses. By maintaining this reserve, the protocol can absorb negative events without immediately impacting GenericUnit holders, helping to maintain the protocol's over-collateralization ratio even during difficult market conditions.
-
-### Conservative Pricing
-
-The protocol employs an asymmetric pricing mechanism designed to protect against adverse selection during stablecoin depegging events. During deposits, assets are valued at the minimum of their oracle price or $1.00, meaning users receive fewer GenericUnit tokens if they deposit depegged stablecoins.
-
-During redemptions, assets are valued at the maximum of their oracle price or $1.00, ensuring users receive more collateral if stablecoins are trading below peg. This conservative approach prevents users from exploiting temporary price deviations to extract value from the protocol.
-
-### Emergency Controls
-
-The protocol includes multiple safety mechanisms that can be activated during crises. The Emergency Manager role can pause all deposits and redemptions to prevent further harm while issues are investigated and resolved. Emergency rebalancing authorization allows the protocol to move assets even when normal constraints would prevent it, enabling rapid response to failing strategies or compromised protocols. All sensitive operations require multi-signature approval from multiple parties, ensuring no single entity can unilaterally take actions that affect user funds.

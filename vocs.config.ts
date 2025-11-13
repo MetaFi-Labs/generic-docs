@@ -42,6 +42,7 @@ export default defineConfig({
               ],
             },
             { text: 'Predeposit Vault', link: '/protocol/predeposit' },
+            { text: 'Risk Management', link: '/protocol/risk' },
           ],
         },
         {
