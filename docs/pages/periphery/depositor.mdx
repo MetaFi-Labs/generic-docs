@@ -1,0 +1,42 @@
+# Generic Depositor
+
+The Generic Depositor is a helper contract that simplifies the deposit process for users interacting with the Generic protocol. It automatically handles vault resolution, asset approvals, and provides convenient functions for depositing assets while optionally bridging or predepositing in a single transaction.
+
+Direct interaction with the protocol requires users to:
+- Identify the correct vault for their asset type
+- Execute separate approval and deposit transactions
+- Manually coordinate bridging operations if moving to another chain
+
+The Generic Depositor consolidates these operations into single-transaction functions, reducing complexity and gas costs for end users.
+
+## Core Functionality
+
+### Basic Deposits
+
+The depositor provides two primary deposit methods following the ERC7575 standard:
+
+**Deposit**: Users specify an exact amount of assets to deposit and receive the corresponding shares based on the current exchange rate.
+
+**Mint**: Users specify an exact number of shares they want to receive, and the depositor calculates the required asset amount.
+
+Both methods automatically resolve the correct vault for the provided asset type (USDC, USDT, etc.) and handle all necessary approvals and transfers. Users receive either standard Generic Unit tokens or whitelabeled tokens depending on their preference.
+
+### Deposit and Bridge
+
+The depositor enables users to deposit assets on Ethereum mainnet and immediately bridge the resulting shares to a periphery chain in a single atomic transaction. This combines the deposit operation with cross-chain messaging, allowing users to have tokens available on their desired chain without multiple transactions.
+
+Users specify the bridge type, destination chain ID, recipient address, and any bridge-specific parameters. The contract handles the deposit, minting of shares, and coordination with the Bridge Coordinator to initiate the cross-chain transfer.
+
+:::info
+When using deposit and bridge functions, users must include the appropriate native token amount (ETH) to cover bridge messaging fees. The required amount varies by bridge type and destination chain.
+:::
+
+### Deposit and Predeposit
+
+For chains that are announced but not yet fully operational, the depositor supports predeposit operations. Users can deposit assets on mainnet and reserve their position for a specific upcoming chain using a chain nickname.
+
+Predeposited shares immediately begin earning yield through the protocol's standard mechanisms. When the destination chain launches, users can bridge their predeposited units without additional waiting periods. This provides early access while maintaining the productivity of deposited capital.
+
+## Code Reference
+
+For detailed function signatures, parameters, and implementation details, see the [GenericDepositor contract reference](/code-ref/protocol/periphery/GenericDepositor.sol/contract.GenericDepositor).

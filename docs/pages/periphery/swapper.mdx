@@ -1,0 +1,45 @@
+# Generic Swapper
+
+Swapper contracts provide the Generic protocol with standardized token swap capabilities through various decentralized exchange (DEX) integrations. These contracts implement the `ISwapper` interface, enabling the protocol to execute asset conversions for rebalancing operations, reward token liquidation, and user-facing swap features.
+
+The protocol requires token swapping capabilities for several operational scenarios:
+
+**Rebalancing**: Converting between different stablecoin types when reallocating collateral across vaults to optimize yield or manage liquidity.
+
+**Rewards Collection**: Liquidating reward tokens earned from DeFi protocols into stablecoins that can be added to the collateral base.
+
+Swapper contracts abstract the complexity of different DEX protocols behind a unified interface, allowing the protocol to leverage multiple liquidity sources without coupling to any single DEX implementation.
+
+## Implementations
+
+### 1inch Swapper
+
+The 1inch integration leverages the 1inch Aggregation Router to find optimal swap routes across multiple DEXs and liquidity sources. This typically provides better pricing for larger swaps by splitting orders across multiple venues or routing through intermediate tokens.
+
+The swapper requires swap parameters obtained from the 1inch API `/swap` endpoint, which includes the complete transaction data for executing the swap. For security, the contract maintains a whitelist of allowed executor addresses that can be used in 1inch swap calls, preventing unauthorized interaction patterns.
+
+:::warning
+The 1inch swapper should only be used with transaction data obtained from the official 1inch API. Using arbitrary transaction data can result in failed swaps or loss of funds.
+:::
+
+### Uniswap V3 Swapper
+
+The Uniswap V3 integration executes single-hop token swaps through Uniswap V3 pools with configurable fee tiers. Users specify the fee tier (typically 100, 500, 3000, or 10000 basis points) as part of the swap parameters to route through the appropriate liquidity pool.
+
+The swapper uses Uniswap's router for swap execution and quoter for price estimates. It validates inputs, approves tokens, and executes swaps with slippage protection through the minimum output amount parameter.
+
+### USDS to DAI Swapper
+
+A specialized swapper for converting between USDS and DAI tokens using Uniswap V3. This implementation addresses the specific conversion needs when the protocol interacts with Sky Protocol (formerly MakerDAO) and related integrations that use both USDS and DAI.
+
+## Integration with Protocol
+
+Each swapper receives tokens directly, executes the swap, and sends output tokens to the specified recipient address. The protocol validates that the received amount meets minimum requirements before proceeding with subsequent operations.
+
+## Code Reference
+
+For detailed function signatures, parameters, and implementation details, see the contract references:
+
+- [OneInchSwapper](/code-ref/protocol/periphery/swapper/OneInchSwapper.sol/contract.OneInchSwapper)
+- [UniswapV3Swapper](/code-ref/protocol/periphery/swapper/UniswapV3Swapper.sol/contract.UniswapV3Swapper)
+- [USDSToDAIUniswapV3Swapper](/code-ref/protocol/periphery/swapper/USDSToDAIUniswapV3Swapper.sol/contract.USDSToDAIUniswapV3Swapper)

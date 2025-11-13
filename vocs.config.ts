@@ -57,6 +57,14 @@ export default defineConfig({
             { text: 'Emergency', link: '/bridging/emergency' },
           ],
         },
+        {
+          text: 'Periphery',
+          collapsed: true,
+          items: [
+            { text: 'Depositor', link: '/periphery/depositor' },
+            { text: 'Swapper', link: '/periphery/swapper' },
+          ],
+        },
       ]
     },
     {
