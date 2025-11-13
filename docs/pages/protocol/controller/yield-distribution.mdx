@@ -4,21 +4,27 @@ Rather than automatically increasing the price-per-share of unit tokens, yield i
 
 ## Yield Calculation
 
-Yield is calculated as the difference between the total collateral value and the unit token value:
+Yield is calculated as the difference between the total collateral value and the unit token value, with the safety buffer deducted to determine distributable yield:
 
-```
-Yield = Total Collateral Value - Total Unit Token Value
-```
+$$
+\text{Gross Yield} = \text{Total Collateral Value} - \text{Total Unit Supply}
+$$
+
+$$
+\text{Distributable Yield} = \text{Gross Yield} - \text{Safety Buffer Amount}
+$$
 
 **How Collateral Grows:**
 Collateral is deposited into yield-generating strategies (such as Morpho, Aave, or Sky). As these strategies earn returns, the total collateral value increases over time, creating the yield that can be distributed.
 
 **Example:**
-- Total collateral value: $105 million (grown from strategies)
-- Total unit tokens outstanding: 100 million (at $1.00 each = $100 million)
-- Available yield: $5 million
+- Total collateral value: \$105 million (grown from strategies)
+- Total unit tokens supply: 100 million (at \$1.00 each = \$100 million)
+- Gross yield: \$5 million
+- Safety buffer: \$250,000
+- Distributable yield: \$5 million - \$250,000 = \$4.75 million
 
-From this $5 million yield, a portion is allocated to the safety buffer, and the remainder is distributed as new units.
+The safety buffer amount is retained within the protocol's collateral pool and not distributed as new units.
 
 ## Distribution Mechanism
 
@@ -33,9 +39,9 @@ From this $5 million yield, a portion is allocated to the safety buffer, and the
 6. Each chain/dapp uses their allocated units to incentivize their users
 
 **Example:**
-If the protocol generates $100,000 worth of yield in a week:
-- Safety buffer (e.g., 5%): $5,000 not distributed
-- Distributable yield: $95,000 = 95,000 new units
+If the protocol generates \$100,000 worth of yield in a week:
+- Safety buffer: \$5,000 not distributed
+- Distributable yield: \$95,000 = 95,000 new units
 - Chain A (60% of TVL) receives 57,000 units
 - Chain B (40% of TVL) receives 38,000 units
 
