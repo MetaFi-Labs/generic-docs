@@ -6,7 +6,9 @@ The protocol enforces diversification at multiple levels to prevent over-concent
 
 In the current implementation, each vault deploys to a single strategy, but future versions will support multiple strategies per vault, allowing the Vault Manager to spread risk across different DeFi protocols like Morpho, Aave, and Sky.
 
+:::danger
 The protocol only deploys to strategies that are capital-preserving and continuously growing under normal circumstances, such as lending markets. Strategies with inherent principal risk like liquidity pools are excluded, as these can experience impermanent loss or value fluctuations that would violate the protocol's capital preservation requirements.
+:::
 
 ## Safety Buffer
 
