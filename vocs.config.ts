@@ -70,9 +70,10 @@ export default defineConfig({
     },
     {
       text: 'Resources',
-      collapsed: true,
+      collapsed: false,
       items: [
         { text: 'Addresses', link: '/resources/addresses' },
+        { text: 'Audits', link: '/resources/audits' },
       ]
     },
     {
