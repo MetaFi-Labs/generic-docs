@@ -69,6 +69,13 @@ export default defineConfig({
       ]
     },
     {
+      text: 'Resources',
+      collapsed: true,
+      items: [
+        { text: 'Addresses', link: '/resources/addresses' },
+      ]
+    },
+    {
       text: 'Code Reference',
       collapsed: true,
       items: [
