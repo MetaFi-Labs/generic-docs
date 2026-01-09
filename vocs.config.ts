@@ -8,7 +8,6 @@ export default defineConfig({
     light: '/img/logo-black.svg',
     dark: '/img/logo-white.svg',
   },
-  checkDeadlinks: 'warn',
   socials: [
     { icon: 'github', link: 'https://github.com/MetaFi-labs' },
     { icon: 'x', link: 'https://x.com/genericmoney' },
