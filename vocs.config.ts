@@ -73,6 +73,7 @@ export default defineConfig({
       collapsed: false,
       items: [
         { text: 'Addresses', link: '/resources/addresses' },
+        { text: 'Protocol Config', link: '/resources/config' },
         { text: 'Audits', link: '/resources/audits' },
       ]
     },
