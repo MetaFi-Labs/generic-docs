@@ -9,7 +9,7 @@ export default defineConfig({
     dark: '/img/logo-white.svg',
   },
   socials: [
-    { icon: 'github', link: 'https://github.com/MetaFi-labs' },
+    { icon: 'github', link: 'https://github.com/generic-money' },
     { icon: 'x', link: 'https://x.com/genericmoney' },
   ],
   sidebar: [
@@ -75,6 +75,7 @@ export default defineConfig({
         { text: 'Addresses', link: '/resources/addresses' },
         { text: 'Protocol Config', link: '/resources/config' },
         { text: 'Audits', link: '/resources/audits' },
+        { text: 'Whitepaper', link: 'https://www.generic.money/whitepaper.pdf' },
       ]
     },
     {
