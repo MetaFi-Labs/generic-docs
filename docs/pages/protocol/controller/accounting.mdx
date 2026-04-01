@@ -20,9 +20,23 @@ The **asset accounting price** is the value assigned to the underlying collatera
 - **During deposits**: Valued at $$min(\$1.00, \text{oracle price})$$
 - **During redemptions**: Valued at $$max(\$1.00, \text{oracle price})$$
 
+### Secondary Action Fee
+
+The **secondary action fee** is an additional adjustment applied to the accounting price used by the second action in a transaction when that second action is of a different type than the first.
+
+- **Mixed-action transaction**: If a transaction performs a deposit and then a redemption, or a redemption and then a deposit, the second action's accounting price includes an additional fee.
+- **Same-action transaction**: Two deposits or two redemptions in the same transaction do **not** incur this fee.
+
+For the second action in a mixed-action transaction, the adjusted accounting price is:
+
+- **During deposits**: $$\text{accounting price} * (1 - \text{fee})$$
+- **During redemptions**: $$\frac{\text{accounting price}}{1 - \text{fee}}$$
+
+This mechanism makes a same-transaction deposit-then-redeem or redeem-then-deposit path more expensive, reducing opportunities to exploit short-lived pricing differences within a single transaction.
+
 ## Conversion Formulas
 
-The conversion between assets and shares uses the accounting prices defined above, which vary based on the operation context (deposit or redemption).
+The conversion between assets and shares uses the accounting prices defined above, which vary based on the operation context (deposit or redemption). If the action is the second leg of a mixed deposit and redemption sequence in the same transaction, the relevant accounting price also includes the secondary action fee.
 
 ### Asset to Share Conversion
 
