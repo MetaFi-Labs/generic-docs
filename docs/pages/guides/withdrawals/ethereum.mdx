@@ -1,0 +1,117 @@
+# Withdraw from Ethereum
+
+Use this guide to redeem GUSD or GenericUnit for USDC, USDT, or USDS on Ethereum Mainnet. You will unwrap GUSD when needed, check live vault liquidity, and redeem GenericUnit through Etherscan.
+
+:::warning
+Connect the wallet that owns the tokens. Keep the same wallet in every `owner`, `recipient`, and `receiver` field unless you intend to send the result elsewhere.
+:::
+
+## Check the Ethereum contracts
+
+These are the contracts used in this route:
+
+| Contract | Address | Purpose |
+|---|---|---|
+| GUSD | [`0xece811d35f79C4868a2B911E55D9aa0821399EDF`](https://etherscan.io/address/0xece811d35f79C4868a2B911E55D9aa0821399EDF#readProxyContract) | Unwrap GUSD into GenericUnit |
+| GenericUnit | [`0x8c307baDbd78bEa5A1cCF9677caa58e7A2172502`](https://etherscan.io/address/0x8c307baDbd78bEa5A1cCF9677caa58e7A2172502#readContract) | Shares redeemed through a collateral vault |
+| USDC vault | [`0x4825eFF24F9B7b76EEAFA2ecc6A1D5dFCb3c1c3f`](https://etherscan.io/address/0x4825eFF24F9B7b76EEAFA2ecc6A1D5dFCb3c1c3f#readProxyContract) | Redeem GenericUnit for USDC |
+| USDT vault | [`0xB8280955aE7b5207AF4CDbdCd775135Bd38157fE`](https://etherscan.io/address/0xB8280955aE7b5207AF4CDbdCd775135Bd38157fE#readProxyContract) | Redeem GenericUnit for USDT |
+| USDS vault | [`0x6133dA4Cd25773Ebd38542a8aCEF8F94cA89892A`](https://etherscan.io/address/0x6133dA4Cd25773Ebd38542a8aCEF8F94cA89892A#readProxyContract) | Redeem GenericUnit for USDS |
+
+Ethereum Mainnet has chain ID `1`. Stop if your wallet displays another network when you connect.
+
+## Check whether you hold GUSD or GenericUnit
+
+Read both balances before submitting a transaction:
+
+1. Open the [GUSD contract on Etherscan](https://etherscan.io/address/0xece811d35f79C4868a2B911E55D9aa0821399EDF#readProxyContract).
+2. Select **Contract**, then **Read as Proxy**.
+3. Open `balanceOf` and enter your wallet address in `account`.
+4. Open the [GenericUnit contract on Etherscan](https://etherscan.io/address/0x8c307baDbd78bEa5A1cCF9677caa58e7A2172502#readContract).
+5. Select **Contract**, then **Read Contract**.
+6. Open `balanceOf` and enter the same wallet address.
+
+Both results use 18 decimals. A result of `1000000000000000000` equals one token.
+
+## Unwrap GUSD into GenericUnit
+
+Skip this section if your balance is already in GenericUnit. Unwrapping burns the selected GUSD amount and sends the same number of GenericUnit shares to `recipient`.
+
+1. Open the [GUSD **Write as Proxy** page](https://etherscan.io/address/0xece811d35f79C4868a2B911E55D9aa0821399EDF#writeProxyContract).
+2. Select **Contract**, then **Write as Proxy**.
+3. Select **Connect to Web3** and connect the GUSD owner wallet.
+4. Find `unwrap` and enter these parameters:
+
+| Parameter | Enter |
+|---|---|
+| `owner` | Your connected wallet address |
+| `recipient` | Your connected wallet address |
+| `amount` | GUSD to unwrap, as an 18-decimal integer |
+
+5. Select **Write** and review the transaction in your wallet.
+6. Confirm that the destination is the GUSD contract above.
+7. Submit the transaction and wait for Etherscan to show **Success**.
+8. Read your GenericUnit `balanceOf` again.
+
+When the connected wallet is also `owner`, call `unwrap` without an approval. Do not approve another address to unwrap your GUSD for this route.
+
+## Choose a collateral vault
+
+Each vault returns one stablecoin. Available liquidity can differ between vaults, so read the vault before choosing it.
+
+| Stablecoin | Vault | Stablecoin decimals |
+|---|---|---:|
+| USDC | [USDC vault](https://etherscan.io/address/0x4825eFF24F9B7b76EEAFA2ecc6A1D5dFCb3c1c3f#readProxyContract) | 6 |
+| USDT | [USDT vault](https://etherscan.io/address/0xB8280955aE7b5207AF4CDbdCd775135Bd38157fE#readProxyContract) | 6 |
+| USDS | [USDS vault](https://etherscan.io/address/0x6133dA4Cd25773Ebd38542a8aCEF8F94cA89892A#readProxyContract) | 18 |
+
+The vault may hold less immediately available liquidity than your GenericUnit balance. This does not change your share balance.
+
+## Check your redeemable shares
+
+Use the read functions on your selected vault to choose a valid amount:
+
+1. Open the vault and select **Contract**, then **Read as Proxy**.
+2. Open `maxRedeem`.
+3. Enter your wallet address in `owner` and select **Query**.
+4. Compare the result with your GenericUnit `balanceOf`.
+5. Choose a `shares` value no greater than either result.
+6. Open `previewRedeem` and enter that `shares` value.
+7. Record the returned asset amount before submitting the redemption.
+
+`shares` and `maxRedeem` use 18 decimals. `previewRedeem` returns native units: 6 decimals for USDC or USDT, and 18 decimals for USDS.
+
+:::warning
+Do not use `convertToAssets` as your withdrawal quote. Use `previewRedeem`, because it applies the current redemption calculation.
+:::
+
+## Redeem GenericUnit for the stablecoin
+
+Redeem the exact share amount you checked in the previous section:
+
+1. Change the vault tab from **Read as Proxy** to **Write as Proxy**.
+2. Select **Connect to Web3** and connect the GenericUnit owner wallet.
+3. Find `redeem` and enter these parameters:
+
+| Parameter | Enter |
+|---|---|
+| `shares` | The 18-decimal share amount checked with `maxRedeem` |
+| `receiver` | Your connected wallet address |
+| `owner` | Your connected wallet address |
+
+4. Select **Write** and review the transaction in your wallet.
+5. Confirm that the destination is your selected vault address.
+6. Submit the transaction and wait for Etherscan to show **Success**.
+7. Check the token transfers in the transaction and your stablecoin balance.
+
+When the connected wallet is also `owner`, call `redeem` without a GenericUnit approval. Another caller needs an allowance from the owner.
+
+## Resolve common Ethereum errors
+
+Use the read functions again before retrying a failed transaction:
+
+- **`maxRedeem` returns `0`**: that vault has no immediate redemption capacity for your position. Check another vault or wait for liquidity to change
+- **`previewRedeem` returns less than expected**: confirm the share amount and token decimals before signing
+- **The transaction exceeds the maximum**: read `maxRedeem` again and reduce `shares`
+- **The wallet shows another contract**: reject the transaction and reopen the vault from this guide
+- **The transaction succeeded but the token is missing**: inspect the `receiver` value and token transfer log

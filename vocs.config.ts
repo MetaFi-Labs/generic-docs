@@ -15,6 +15,16 @@ export default defineConfig({
   sidebar: [
     { text: 'Introduction', link: '/' },
     {
+      text: 'User Guides',
+      collapsed: false,
+      items: [
+        { text: 'Choose a Withdrawal Route', link: '/guides/withdrawals/overview' },
+        { text: 'Withdraw From Ethereum', link: '/guides/withdrawals/ethereum' },
+        { text: 'Withdraw a Status Predeposit', link: '/guides/withdrawals/status-predeposit' },
+        { text: 'Withdraw From Citrea', link: '/guides/withdrawals/citrea' },
+      ],
+    },
+    {
       text: 'Technical Documentation',
       collapsed: false,
       items: [

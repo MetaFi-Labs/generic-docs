@@ -1,0 +1,222 @@
+# Withdraw from Citrea
+
+Use this guide to move sGUSD, GUSD, or GenericUnitL2 from Citrea to Ethereum without the Generic app. You will prepare the balance, quote the LayerZero fee, submit one cross-chain message, and finish the withdrawal on Ethereum.
+
+:::warning
+The Citrea route uses several contract calls and a cross-chain message. Save every transaction hash. Do not submit the bridge twice because Ethereum delivery takes longer than the Citrea source transaction.
+:::
+
+## Prepare Citrea and Ethereum gas
+
+You need cBTC on Citrea for contract gas and the LayerZero fee. You also need ETH on Ethereum for the final GUSD unwrap and vault redemption.
+
+If Citrea is missing from your wallet, add this network:
+
+| Setting | Value |
+|---|---|
+| Network name | `Citrea Mainnet` |
+| Remote procedure call (RPC) URL | `https://rpc.citreascan.com` |
+| Chain ID | `4114` |
+| Currency symbol | `cBTC` |
+| Block explorer | `https://citreascan.com` |
+
+Confirm that your wallet displays Citrea chain ID `4114` before signing a Citrea transaction.
+
+## Check the contracts used in this route
+
+Use the proxy address when CitreaScan displays a proxy and implementation pair:
+
+| Contract | Address | Purpose |
+|---|---|---|
+| Citrea GUSD | [`0xAC8c1AEB584765DB16ac3e08D4736CFcE198589B`](https://citreascan.com/address/0xAC8c1AEB584765DB16ac3e08D4736CFcE198589B) | Token approved and bridged |
+| Citrea sGUSD | [`0x4Fb03AfE959394DB9C4E312A89C6e485FB3732d1`](https://citreascan.com/address/0x4Fb03AfE959394DB9C4E312A89C6e485FB3732d1) | Vault shares redeemed into GUSD |
+| Citrea GenericUnitL2 | [`0xd4AB6BA9764163f9B567A314999ad0F2ad66668C`](https://citreascan.com/address/0xd4AB6BA9764163f9B567A314999ad0F2ad66668C) | Alternate native-unit balance |
+| BridgeCoordinatorL2 | [`0x6E810122C2B7d474Ef568bdf221ec05f2dC8063A`](https://citreascan.com/address/0x6E810122C2B7d474Ef568bdf221ec05f2dC8063A) | Encodes and submits the bridge message |
+| LayerZero adapter | [`0xf056d4F903E53432873bFD0DA32f9d6fCb92825c`](https://citreascan.com/address/0xf056d4F903E53432873bFD0DA32f9d6fCb92825c) | Quotes the current bridge fee |
+| Ethereum GUSD | [`0xece811d35f79C4868a2B911E55D9aa0821399EDF`](https://etherscan.io/address/0xece811d35f79C4868a2B911E55D9aa0821399EDF#readProxyContract) | Token received on Ethereum |
+
+All token amounts in this Citrea route use 18 decimals.
+
+## Redeem sGUSD into GUSD
+
+Skip this section if you hold GUSD or GenericUnitL2. The sGUSD vault `redeem` function burns shares and returns GUSD.
+
+1. Open the [sGUSD contract on CitreaScan](https://citreascan.com/address/0x4Fb03AfE959394DB9C4E312A89C6e485FB3732d1).
+2. Open **Read Proxy** and call `balanceOf` with your wallet address.
+3. Call `maxRedeem` with your wallet address.
+4. Choose a share amount no greater than either result.
+5. Call `previewRedeem` with that share amount and record the GUSD result.
+6. Open **Write Proxy** and connect the sGUSD owner wallet.
+7. Find `redeem` and enter these parameters:
+
+| Parameter | Enter |
+|---|---|
+| `shares` | The 18-decimal sGUSD share amount |
+| `receiver` | Your connected Citrea wallet address |
+| `owner` | Your connected Citrea wallet address |
+
+8. Submit the transaction and wait for CitreaScan to show **Success**.
+9. Read GUSD `balanceOf` to confirm receipt.
+
+When the connected wallet is also `owner`, call `redeem` without an sGUSD approval.
+
+## Add the coordinator interface to CitreaScan
+
+CitreaScan currently recognizes BridgeCoordinatorL2 as a proxy but does not expose its implementation functions. Add the withdrawal interface as a custom Application Binary Interface (ABI).
+
+Skip this section if CitreaScan already shows both `encodeBridgeMessage` and `bridge` under **Read Proxy** and **Write Proxy**.
+
+1. Sign in to CitreaScan.
+2. Open your account menu and select **Custom ABI**.
+3. Select **Add Custom ABI**.
+4. Enter `0x6E810122C2B7d474Ef568bdf221ec05f2dC8063A` as the contract address.
+5. Enter `Generic Citrea withdrawal` as the project name.
+6. Open the <a href="/abis/citrea-withdrawal-coordinator.json" download>minimal coordinator ABI</a> and copy the complete JSON array.
+7. Paste the array into **Custom ABI** and save it.
+8. Return to the BridgeCoordinatorL2 contract page.
+
+CitreaScan should now show **Read Custom** and **Write Custom**. The custom ABI only exposes the two functions required by this guide.
+
+## Prepare the bridge values
+
+The fee quote and bridge transaction must describe the same message. Prepare these values before approving a token:
+
+| Value | Enter |
+|---|---|
+| Destination `chainId` | `1` |
+| LayerZero `bridgeType` | `1` |
+| `bridgeParams` | `0x` |
+| Zero address | `0x0000000000000000000000000000000000000000` |
+| Zero bytes32 | `0x0000000000000000000000000000000000000000000000000000000000000000` |
+| Citrea GUSD as bytes32 | `0x000000000000000000000000ac8c1aeb584765db16ac3e08d4736cfce198589b` |
+| Ethereum GUSD as bytes32 | `0x000000000000000000000000ece811d35f79c4868a2b911e55d9aa0821399edf` |
+
+Convert your wallet address to bytes32 by removing `0x`, adding 24 zero hexadecimal characters to the left, then restoring `0x`. For example:
+
+```text
+Wallet:  0x1234567890123456789012345678901234567890
+bytes32: 0x0000000000000000000000001234567890123456789012345678901234567890
+```
+
+Use the same wallet bytes32 for `sender` and `recipient`. Keep the original 20-byte wallet address for `onBehalf`.
+
+## Choose the source token values
+
+Your source balance determines which contract to approve and which whitelabel values to use:
+
+| Balance | Token to approve | `sourceWhitelabel` in `bridge` | `sourceWhitelabel` in the encoded message |
+|---|---|---|---|
+| GUSD, including GUSD redeemed from sGUSD | Citrea GUSD | `0xAC8c1AEB584765DB16ac3e08D4736CFcE198589B` | Citrea GUSD as bytes32 |
+| GenericUnitL2 | Citrea GenericUnitL2 | Zero address | Zero bytes32 |
+
+Call `balanceOf` on the token to obtain your amount. The `amount` used in the approval, message, fee quote, and bridge must match exactly.
+
+## Approve the coordinator
+
+Approve only the amount you plan to bridge:
+
+1. Open your source token on CitreaScan.
+2. Use **Write Proxy** for GUSD or **Write Contract** for GenericUnitL2.
+3. Connect the token owner wallet.
+4. Find `approve` and enter these parameters:
+
+| Parameter | Enter |
+|---|---|
+| `spender` | `0x6E810122C2B7d474Ef568bdf221ec05f2dC8063A` |
+| `value` | The exact 18-decimal bridge amount |
+
+5. Submit the approval and wait for CitreaScan to show **Success**.
+6. Use `allowance` to confirm that BridgeCoordinatorL2 can spend the amount.
+
+Do not approve the LayerZero adapter. BridgeCoordinatorL2 is the contract that unwraps or burns the source token.
+
+## Encode the LayerZero message
+
+Use BridgeCoordinatorL2 **Read Custom** to create the byte string required for the fee quote:
+
+1. Open `encodeBridgeMessage`.
+2. Fill the `message` tuple with these fields:
+
+| Tuple field | Enter |
+|---|---|
+| `sender` | Your wallet as bytes32 |
+| `recipient` | Your wallet as bytes32 |
+| `sourceWhitelabel` | The bytes32 value selected above |
+| `destinationWhitelabel` | Ethereum GUSD as bytes32 |
+| `amount` | The exact 18-decimal bridge amount |
+
+3. Select **Query**.
+4. Copy the complete returned `bytes` value.
+
+Keep this browser tab open. Changing any tuple field requires a new encoding and fee quote.
+
+## Quote the LayerZero fee
+
+The adapter calculates the required cBTC value from the encoded message:
+
+1. Open the [LayerZero adapter on CitreaScan](https://citreascan.com/address/0xf056d4F903E53432873bFD0DA32f9d6fCb92825c).
+2. Open **Read Contract**.
+3. Find `estimateBridgeFee`.
+4. Enter these parameters:
+
+| Parameter | Enter |
+|---|---|
+| `chainId` | `1` |
+| `message` | The complete bytes returned by `encodeBridgeMessage` |
+| `bridgeParams` | `0x` |
+
+5. Select **Query** and copy the returned `nativeFee` integer.
+
+The quote uses cBTC base units. Query it immediately before submitting `bridge`, because LayerZero fees can change.
+
+## Submit the bridge transaction
+
+Call `bridge` on the coordinator proxy, not on the LayerZero adapter:
+
+1. Return to BridgeCoordinatorL2 on CitreaScan.
+2. Open **Write Custom** and connect the wallet that owns the approved token.
+3. Find `bridge` and enter these parameters:
+
+| Parameter | Enter |
+|---|---|
+| `bridgeType` | `1` |
+| `chainId` | `1` |
+| `onBehalf` | Your 20-byte Citrea wallet address |
+| `remoteRecipient` | Your wallet as bytes32 |
+| `sourceWhitelabel` | The 20-byte address selected above |
+| `destinationWhitelabel` | Ethereum GUSD as bytes32 |
+| `amount` | The amount used in the approval and encoded message |
+| `bridgeParams` | `0x` |
+
+4. Enter `nativeFee` in the payable transaction value field. Use the base-unit or `wei` option if CitreaScan displays a unit selector.
+5. Select **Write** and review the transaction in your wallet.
+6. Confirm that the transaction destination is BridgeCoordinatorL2.
+7. Confirm that the transaction value matches the quoted `nativeFee`.
+8. Submit the transaction and save its Citrea transaction hash.
+
+The wallet also charges Citrea gas. The LayerZero fee is separate from that gas charge.
+
+## Wait for Ethereum delivery
+
+A successful Citrea transaction confirms that BridgeCoordinatorL2 submitted the source message. It does not confirm Ethereum delivery.
+
+Track the transfer in this order:
+
+1. Confirm that CitreaScan shows the source transaction as **Success**.
+2. Search the transaction hash on [LayerZero Scan](https://layerzeroscan.com/).
+3. Wait for the LayerZero message to show **Delivered**.
+4. Open [Ethereum GUSD on Etherscan](https://etherscan.io/address/0xece811d35f79C4868a2B911E55D9aa0821399EDF#readProxyContract).
+5. Call `balanceOf` with the Ethereum recipient address.
+
+After the GUSD arrives, continue with [Unwrap GUSD into GenericUnit](/guides/withdrawals/ethereum#unwrap-gusd-into-genericunit). Finish by redeeming GenericUnit through your chosen Ethereum vault.
+
+## Resolve common Citrea errors
+
+Use the original transaction hashes and message values before attempting another write:
+
+- **The approval succeeded but `bridge` reverts**: confirm the amount, allowance, source whitelabel, and a fresh `nativeFee`
+- **CitreaScan does not show coordinator functions**: add the minimal custom ABI to the coordinator proxy address
+- **The source transaction is pending**: do not submit another bridge
+- **The source succeeded but LayerZero is pending**: keep tracking the original hash and do not bridge the same tokens again
+- **LayerZero shows delivered but GUSD is missing**: verify `remoteRecipient` and `destinationWhitelabel`, then provide both transaction hashes to support
+- **LayerZero reports a failed destination execution**: do not call `rollback` without protocol support, because rollback requires the original encoded message and a new bridge fee

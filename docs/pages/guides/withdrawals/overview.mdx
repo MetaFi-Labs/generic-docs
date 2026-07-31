@@ -1,0 +1,70 @@
+# Withdraw without the Generic app
+
+Use these guides to withdraw through block explorers when the Generic app is unavailable. Choose the page that matches where your balance appears, then complete each transaction in order.
+
+:::warning
+No one can reverse a direct contract call. Check the network, contract address, connected wallet, and every parameter before you sign. Ignore contract addresses from direct messages or social media.
+:::
+
+## Choose your withdrawal route
+
+Your starting balance determines which guide to follow:
+
+| Where your balance appears | Start here | What you receive |
+|---|---|---|
+| Ethereum GUSD or GenericUnit | [Withdraw from Ethereum](/guides/withdrawals/ethereum) | USDC, USDT, or USDS on Ethereum |
+| Status predeposit balance | [Withdraw a Status predeposit](/guides/withdrawals/status-predeposit) | GenericUnit on Ethereum, then your chosen stablecoin |
+| Citrea sGUSD, GUSD, or GenericUnitL2 | [Withdraw from Citrea](/guides/withdrawals/citrea) | Ethereum GUSD, then your chosen stablecoin |
+
+The Status and Citrea routes both finish with the Ethereum guide. Status joins after you reclaim GenericUnit. Citrea joins after LayerZero delivers GUSD to Ethereum.
+
+## Prepare your wallet
+
+You need the wallet that owns the position and enough native currency for gas:
+
+- **Ethereum transactions**: ETH on Ethereum Mainnet
+- **Citrea transactions**: cBTC on Citrea
+- **Cross-chain delivery**: the Citrea route also charges a LayerZero fee in cBTC
+- **Final redemption**: ETH on Ethereum after the Citrea transfer arrives
+
+Save every transaction hash before starting the next transaction. A transaction hash is the clearest record of what succeeded and where funds are waiting.
+
+## Use contract explorers safely
+
+Block explorers expose the same contract functions used by an application. Read functions do not change state. Write functions create wallet transactions.
+
+Follow these rules on every page:
+
+1. Open contracts from these guides or the [deployment addresses](/resources/addresses) page.
+2. Confirm the address in your browser before connecting your wallet.
+3. Use **Read as Proxy** and **Write as Proxy** on Etherscan when those tabs appear.
+4. Use **Read Proxy** and **Write Proxy** on CitreaScan when those buttons appear.
+5. Call the proxy address listed in the guide, not its implementation address.
+6. Confirm the wallet is on the network named in the step.
+7. Read the completed transaction before continuing.
+
+:::info
+Etherscan labels its wallet button **Connect to Web3**. CitreaScan asks you to connect an Ethereum Virtual Machine (EVM) wallet when you use a write function.
+:::
+
+## Enter token amounts as integers
+
+Contract fields accept base-unit integers, not decimal token amounts. Multiply the displayed token amount by `10^decimals`.
+
+| Token or value | Decimals | Base-unit example |
+|---|---:|---:|
+| GUSD | 18 | `1 GUSD = 1000000000000000000` |
+| GenericUnit | 18 | `1 unit = 1000000000000000000` |
+| sGUSD shares | 18 | `1 share = 1000000000000000000` |
+| GenericUnitL2 | 18 | `1 unit = 1000000000000000000` |
+| USDC or USDT | 6 | `1 token = 1000000` |
+| USDS | 18 | `1 token = 1000000000000000000` |
+| cBTC transaction value | 18 | `1 cBTC = 1000000000000000000` |
+
+Do not enter commas, spaces, or a decimal point. For example, enter `2500000000000000000` for `2.5 GUSD`.
+
+## Stop when a result does not match
+
+Do not guess a replacement value after a read returns `0` or a transaction reverts. Check the wallet, network, amount, and addresses again.
+
+Do not repeat a Citrea bridge while the first message is pending. Track the original transaction through CitreaScan and LayerZero Scan before taking further action.

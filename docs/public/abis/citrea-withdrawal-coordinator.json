@@ -1,0 +1,37 @@
+[
+  {
+    "type": "function",
+    "name": "encodeBridgeMessage",
+    "stateMutability": "pure",
+    "inputs": [
+      {
+        "name": "message",
+        "type": "tuple",
+        "components": [
+          { "name": "sender", "type": "bytes32" },
+          { "name": "recipient", "type": "bytes32" },
+          { "name": "sourceWhitelabel", "type": "bytes32" },
+          { "name": "destinationWhitelabel", "type": "bytes32" },
+          { "name": "amount", "type": "uint256" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes" }]
+  },
+  {
+    "type": "function",
+    "name": "bridge",
+    "stateMutability": "payable",
+    "inputs": [
+      { "name": "bridgeType", "type": "uint16" },
+      { "name": "chainId", "type": "uint256" },
+      { "name": "onBehalf", "type": "address" },
+      { "name": "remoteRecipient", "type": "bytes32" },
+      { "name": "sourceWhitelabel", "type": "address" },
+      { "name": "destinationWhitelabel", "type": "bytes32" },
+      { "name": "amount", "type": "uint256" },
+      { "name": "bridgeParams", "type": "bytes" }
+    ],
+    "outputs": [{ "name": "messageId", "type": "bytes32" }]
+  }
+]

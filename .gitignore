@@ -19,3 +19,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# local agent skills
+/.agents/
+/skills-lock.json

@@ -23,6 +23,8 @@ An exception to this invariant occurs when tokens are predeposited for chains th
 
 The protocol uses a modular adapter system to integrate with different cross-chain messaging protocols. Each adapter implements a standardized interface that allows the coordinators to send and receive messages without being tightly coupled to any specific bridging technology.
 
+To return GUSD or GenericUnitL2 from Citrea without the Generic app, follow the [Citrea withdrawal guide](/guides/withdrawals/citrea).
+
 ## Failed Message Recovery
 
 The bridging system includes a rollback mechanism to recover funds when cross-chain messages fail to execute on the destination chain. If an inbound message cannot be processed successfully, perhaps due to a revert in the recipient contract or an issue with message execution, the coordinator records the failure on-chain rather than reverting the entire transaction.

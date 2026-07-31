@@ -1,0 +1,114 @@
+# Withdraw a Status predeposit
+
+Use this guide to reclaim a Status predeposit through Etherscan. The reclaim transaction runs on Ethereum and returns GenericUnit, which you can redeem for a stablecoin.
+
+:::warning
+Only the wallet that owns the predeposit can call `withdrawPredeposit`. The function withdraws the complete balance stored for one wallet and `remoteRecipient` pair. It has no amount field.
+:::
+
+## Check the Status withdrawal values
+
+Use these exact Ethereum values throughout the reclaim:
+
+| Value | Use |
+|---|---|
+| BridgeCoordinatorL1 | [`0x0503F2C5A1a4b72450c6Cfa790F2097CF5cB6a01`](https://etherscan.io/address/0x0503F2C5A1a4b72450c6Cfa790F2097CF5cB6a01#readProxyContract) |
+| Status `chainNickname` | `0xa4fdc657c7ba2402ba336e88c4ae1c72169f7bc116987c8aefd50982676d9a17` |
+| Native GenericUnit `whitelabel` | `0x0000000000000000000000000000000000000000` |
+| GenericUnit received | [`0x8c307baDbd78bEa5A1cCF9677caa58e7A2172502`](https://etherscan.io/address/0x8c307baDbd78bEa5A1cCF9677caa58e7A2172502#readContract) |
+
+You reclaim this predeposit on Ethereum Mainnet. Do not switch your wallet to Status for these steps.
+
+## Recover the original remote recipient
+
+The contract stores each balance under the depositor wallet and a 32-byte `remoteRecipient`. You must use the same `remoteRecipient` recorded during the deposit.
+
+Deposits made through the Generic app used the depositor wallet address, left-padded with 24 zero bytes. For this example wallet:
+
+```text
+Wallet:          0x1234567890123456789012345678901234567890
+remoteRecipient: 0x0000000000000000000000001234567890123456789012345678901234567890
+```
+
+If you supplied another destination address, recover the original value from the deposit transaction:
+
+1. Find the transaction that created the predeposit.
+2. Open **Logs** on its Etherscan transaction page.
+3. Find the `Predeposited` event from BridgeCoordinatorL1.
+4. Copy the 32-byte `remoteRecipient` value without changing it.
+
+Do not shorten a bytes32 value back to a 20-byte wallet address. The read and write functions require all 64 hexadecimal characters after `0x`.
+
+## Confirm that the Status pool allows withdrawals
+
+The Status pool must be in the `WITHDRAWN` state before you can reclaim funds:
+
+1. Open the [BridgeCoordinatorL1 **Read as Proxy** page](https://etherscan.io/address/0x0503F2C5A1a4b72450c6Cfa790F2097CF5cB6a01#readProxyContract).
+2. Find `getChainPredepositState`.
+3. Enter the Status `chainNickname` shown above.
+4. Select **Query**.
+
+The returned enum value must be `3`, which represents `WITHDRAWN`:
+
+| Result | State | Can you reclaim? |
+|---:|---|---|
+| `0` | `DISABLED` | No |
+| `1` | `ENABLED` | No |
+| `2` | `DISPATCHED` | No |
+| `3` | `WITHDRAWN` | Yes |
+
+Stop if the result is not `3`. A transaction submitted in another state will revert.
+
+## Read your reclaimable balance
+
+Check the exact record before opening the write tab:
+
+1. Stay on the BridgeCoordinatorL1 **Read as Proxy** page.
+2. Find `getPredeposit`.
+3. Enter these parameters:
+
+| Parameter | Enter |
+|---|---|
+| `chainNickname` | `0xa4fdc657c7ba2402ba336e88c4ae1c72169f7bc116987c8aefd50982676d9a17` |
+| `sender` | The wallet that made the predeposit |
+| `remoteRecipient` | The original 32-byte recipient |
+
+4. Select **Query** and record the returned `amount`.
+
+The amount uses 18 decimals. A result of `0` means that this exact wallet and recipient pair has no remaining predeposit.
+
+## Withdraw the predeposit
+
+The write returns the complete amount from the record you checked:
+
+1. Open the [BridgeCoordinatorL1 **Write as Proxy** page](https://etherscan.io/address/0x0503F2C5A1a4b72450c6Cfa790F2097CF5cB6a01#writeProxyContract).
+2. Select **Connect to Web3** and connect the original depositor wallet.
+3. Find `withdrawPredeposit`.
+4. Enter these parameters:
+
+| Parameter | Enter |
+|---|---|
+| `chainNickname` | `0xa4fdc657c7ba2402ba336e88c4ae1c72169f7bc116987c8aefd50982676d9a17` |
+| `remoteRecipient` | The same 32-byte value used in `getPredeposit` |
+| `recipient` | Your connected Ethereum wallet address |
+| `whitelabel` | `0x0000000000000000000000000000000000000000` |
+
+5. Select **Write** and review the transaction in your wallet.
+6. Confirm that the destination is BridgeCoordinatorL1.
+7. Submit the transaction and wait for Etherscan to show **Success**.
+8. Read your GenericUnit `balanceOf` to confirm receipt.
+
+The zero `whitelabel` value returns GenericUnit directly. This avoids an extra GUSD unwrap transaction.
+
+## Redeem the returned GenericUnit
+
+Continue at [Choose a collateral vault](/guides/withdrawals/ethereum#choose-a-collateral-vault) in the Ethereum guide. Skip the GUSD unwrap section because this transaction returned GenericUnit.
+
+## Resolve common Status errors
+
+Use the state and balance reads to identify the cause:
+
+- **`Predeposit_WithdrawalsNotEnabled`**: the Status pool is not in state `3`
+- **`Predeposit_ZeroAmount`**: the connected wallet or `remoteRecipient` does not match an open balance, or the balance was already claimed
+- **The read shows a balance but the write fails**: confirm the connected wallet matches the `sender` used in `getPredeposit`
+- **The transaction succeeded but GenericUnit is missing**: inspect the `recipient` field and the `PredepositWithdrawn` event
